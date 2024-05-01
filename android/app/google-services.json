@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "26913522366",
+    "firebase_url": "https://winform-dc210-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "winform-dc210",
+    "storage_bucket": "winform-dc210.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:26913522366:android:8f0e99cf3e09256892d4ef",
+        "android_client_info": {
+          "package_name": "com.example.movie_theater"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD10LRKyDmwHVZKQJf-pPflRw0FHXC7D0o"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
