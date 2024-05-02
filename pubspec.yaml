@@ -12,6 +12,7 @@ dependencies:
   firebase_database: ^10.5.4
   flutter:
     sdk: flutter
+  intl: ^0.19.0
   side_sheet: ^1.0.4
 
 dev_dependencies:
