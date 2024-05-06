@@ -24,16 +24,22 @@ class HomePageBody extends StatelessWidget {
             SizedBox(height: screenSize.height / 6),
             const HomePagePromoList(),
             const SizedBox(height: 20),
-            const Row(
+            Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                Text(
-                  "Streaming",
-                  style: TextStyle(color: Colors.white),
+                GestureDetector(
+                  onTap: () {},
+                  child: const Text(
+                    "Streaming",
+                    style: TextStyle(color: Colors.white),
+                  ),
                 ),
-                Text(
-                  "Upcoming",
-                  style: TextStyle(color: Colors.white),
+                GestureDetector(
+                  onTap: () {},
+                  child: const Text(
+                    "Upcoming",
+                    style: TextStyle(color: Colors.white),
+                  ),
                 ),
               ],
             ),

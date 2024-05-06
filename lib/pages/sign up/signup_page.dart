@@ -31,7 +31,8 @@ class signupPageState extends State<SignUpPage> {
       MainApp.loading = true;
     });
     await GlobalUtils.dbInstance.ref("users/${usernameTxtCtrl.text}/").set({
-      "name": usernameTxtCtrl.text,
+      "username": usernameTxtCtrl.text,
+      "name": nameTxtCtrl.text,
       "password": passwordTxtCtrl.text,
       "email": emailTxtCtrl.text,
       "birthday": formatter.format(selectedDate).toString(),
