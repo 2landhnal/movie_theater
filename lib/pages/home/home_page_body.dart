@@ -7,6 +7,7 @@ import 'package:movie_theater/pages/home/widgets/home_page_movie_title.dart';
 import 'package:movie_theater/pages/home/widgets/home_page_near_theater.dart';
 import 'package:movie_theater/pages/home/widgets/home_page_news_list.dart';
 import 'package:movie_theater/pages/home/widgets/home_page_promo_list.dart';
+import 'package:movie_theater/pages/home/widgets/home_page_row_header.dart';
 
 class HomePageBody extends StatelessWidget {
   const HomePageBody({super.key});
@@ -24,29 +25,7 @@ class HomePageBody extends StatelessWidget {
             SizedBox(height: screenSize.height / 6),
             const HomePagePromoList(),
             const SizedBox(height: 20),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                GestureDetector(
-                  onTap: () {},
-                  child: const Text(
-                    "Streaming",
-                    style: TextStyle(color: Colors.white),
-                  ),
-                ),
-                GestureDetector(
-                  onTap: () {},
-                  child: const Text(
-                    "Upcoming",
-                    style: TextStyle(color: Colors.white),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
             const HomePageMovieList(),
-            const SizedBox(height: 10),
-            const HomePageMovieTitle(),
             const SizedBox(height: 10),
             const HomePageNearTheater(),
             const SizedBox(height: 10),
@@ -128,46 +107,7 @@ class HomePageBody extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 10),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    "Hot News",
-                    style: ThemeConfig.gettextStyle(
-                      fontWeight: FontWeight.bold,
-                      size: 12,
-                    ),
-                  ),
-                  SizedBox(
-                    height: 30,
-                    child: TextButton(
-                      onPressed: () {},
-                      style: ButtonStyle(
-                          backgroundColor:
-                              MaterialStateProperty.all<Color>(Colors.black),
-                          foregroundColor:
-                              MaterialStateProperty.all<Color>(Colors.white),
-                          shape:
-                              MaterialStateProperty.all(RoundedRectangleBorder(
-                                  side: const BorderSide(
-                                    color: Colors.white, // your color here
-                                    width: 1,
-                                  ),
-                                  borderRadius: BorderRadius.circular(20)))),
-                      child: Text(
-                        "All",
-                        style: ThemeConfig.gettextStyle(
-                          fontWeight: FontWeight.bold,
-                          size: 12,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
+            const RowHeader(),
             const SizedBox(height: 10),
             const HomePageNewsList(),
           ],

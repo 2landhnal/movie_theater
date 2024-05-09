@@ -1,9 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:movie_theater/api_services/api_services.dart';
+import 'package:movie_theater/pages/home/widgets/appbar_back_button.dart';
 import 'package:movie_theater/utils/asset.dart';
+import 'package:provider/provider.dart';
 
 class LoginPage extends StatelessWidget {
-  const LoginPage({super.key});
+  LoginPage({super.key});
+
+  TextEditingController usernameTxtCtrl = TextEditingController(),
+      passwordTxtCtrl = TextEditingController();
+
+  void login(BuildContext context) async {
+    print("Login In clicked!");
+    var result = await APIService.getUserByAccount(usernameTxtCtrl.text);
+    print("result == null: ${result == null}");
+    if (result == null) return;
+    GlobalUtils.sharedPrefs.setString("username", result.username);
+    context.read<GlobalUtils>().loginAccount(result);
+    Navigator.pop(context);
+    ScaffoldMessenger.of(context)
+        .showSnackBar(GlobalUtils.createSnackBar(context, "Success!!"));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -11,31 +29,12 @@ class LoginPage extends StatelessWidget {
       appBar: AppBar(
         automaticallyImplyLeading: false,
         backgroundColor: Colors.black,
-        title: Align(
-          alignment: Alignment.centerLeft,
-          child: Row(
-            children: [
-              IconButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                  icon: const Icon(
-                    Icons.arrow_back,
-                    color: Colors.white,
-                  )),
-              const SizedBox(width: 20),
-              const Text(
-                "Login",
-                style: TextStyle(color: Colors.white),
-              ),
-            ],
-          ),
-        ),
+        title: const AppBarBackButton(),
       ),
       body: Container(
         padding: const EdgeInsets.symmetric(horizontal: 20),
         decoration: const BoxDecoration(color: Colors.black),
-        child: const Column(
+        child: Column(
           children: [
             Expanded(
               child: Center(
@@ -43,12 +42,14 @@ class LoginPage extends StatelessWidget {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      UsernameField(),
-                      SizedBox(height: 10),
-                      PasswordField(),
-                      SizedBox(height: 10),
-                      SignInButton(),
-                      SignUpButton(),
+                      UsernameField(ctrl: usernameTxtCtrl),
+                      const SizedBox(height: 10),
+                      PasswordField(ctrl: passwordTxtCtrl),
+                      const SizedBox(height: 10),
+                      SignInButton(
+                        onClick: login,
+                      ),
+                      const SignUpButton(),
                     ],
                   ),
                 ),
@@ -62,43 +63,47 @@ class LoginPage extends StatelessWidget {
 }
 
 class PasswordField extends StatelessWidget {
-  const PasswordField({
-    super.key,
-  });
+  PasswordField({super.key, required this.ctrl});
+  TextEditingController ctrl;
 
   @override
   Widget build(BuildContext context) {
     return TextField(
-      decoration: GlobalUtils.inputDecorationBlack(labelText: "Password"),
+      style: const TextStyle(color: Colors.white),
+      controller: ctrl,
+      decoration: context
+          .read<GlobalUtils>()
+          .inputDecorationBlack(labelText: "Password"),
     );
   }
 }
 
 class UsernameField extends StatelessWidget {
-  const UsernameField({
-    super.key,
-  });
+  UsernameField({super.key, required this.ctrl});
+  TextEditingController ctrl;
 
   @override
   Widget build(BuildContext context) {
     return TextField(
-        decoration: GlobalUtils.inputDecorationBlack(labelText: "Username"));
+        style: const TextStyle(color: Colors.white),
+        controller: ctrl,
+        decoration: context
+            .read<GlobalUtils>()
+            .inputDecorationBlack(labelText: "Username"));
   }
 }
 
 class SignInButton extends StatelessWidget {
-  const SignInButton({
-    super.key,
-  });
+  SignInButton({super.key, required this.onClick});
+
+  Function onClick;
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
       width: double.infinity,
       child: TextButton(
-        onPressed: () {
-          Navigator.pop(context);
-        },
+        onPressed: () => onClick(context),
         style: ButtonStyle(
           backgroundColor: MaterialStateProperty.all<Color>(Colors.black),
           foregroundColor: MaterialStateProperty.all<Color>(Colors.white),
@@ -109,7 +114,7 @@ class SignInButton extends StatelessWidget {
               ),
               borderRadius: BorderRadius.circular(0))),
         ),
-        child: const Text("Sign in"),
+        child: const Text("Log in"),
       ),
     );
   }
@@ -126,7 +131,8 @@ class SignUpButton extends StatelessWidget {
       width: double.infinity,
       child: TextButton(
         onPressed: () {
-          GlobalUtils.signUpFunc(context);
+          Navigator.pop(context);
+          context.read<GlobalUtils>().signUpFunc(context);
         },
         style: ButtonStyle(
           backgroundColor: MaterialStateProperty.all<Color>(Colors.black),

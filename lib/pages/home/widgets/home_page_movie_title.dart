@@ -1,8 +1,14 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
+import 'package:movie_theater/data/dataClasses.dart';
+import 'package:movie_theater/helpers/helper.dart';
+import 'package:movie_theater/pages/theater%20select/theater_select_page.dart';
 
 class HomePageMovieTitle extends StatelessWidget {
-  const HomePageMovieTitle({super.key});
+  HomePageMovieTitle({super.key, required this.movie});
+
+  Movie movie;
 
   @override
   Widget build(BuildContext context) {
@@ -11,33 +17,44 @@ class HomePageMovieTitle extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          const Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                "Dune 2",
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                  fontSize: 18,
+          // Flexible for fixing overflow text
+          Flexible(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  movie.title,
+                  overflow: TextOverflow.fade,
+                  softWrap: false,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                    fontSize: 18,
+                  ),
                 ),
-              ),
-              Text(
-                "1 hour 36 min",
-                style: TextStyle(
-                  fontWeight: FontWeight.normal,
-                  color: Colors.white,
-                  fontSize: 12,
+                Text(
+                  MyHelper.getHourMinFromMin(movie.runtime),
+                  style: const TextStyle(
+                    fontWeight: FontWeight.normal,
+                    color: Colors.white,
+                    fontSize: 12,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
           TextButton(
             style: ButtonStyle(
               backgroundColor: MaterialStateProperty.all<Color>(Colors.red),
               foregroundColor: MaterialStateProperty.all<Color>(Colors.white),
             ),
-            onPressed: () {},
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => TheaterSelectPage(movie: movie)),
+              );
+            },
             child: const Text('Order now'),
           )
         ],

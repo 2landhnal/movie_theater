@@ -3,9 +3,12 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:intl/intl.dart';
+import 'package:movie_theater/data/dataClasses.dart';
 import 'package:movie_theater/helpers/helper.dart';
 import 'package:movie_theater/my_app.dart';
+import 'package:movie_theater/pages/home/widgets/appbar_back_button.dart';
 import 'package:movie_theater/utils/asset.dart';
+import 'package:provider/provider.dart';
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({super.key});
@@ -30,6 +33,17 @@ class signupPageState extends State<SignUpPage> {
     setState(() {
       MainApp.loading = true;
     });
+    Account account = Account(
+      username: usernameTxtCtrl.text,
+      name: nameTxtCtrl.text,
+      password: passwordTxtCtrl.text,
+      email: emailTxtCtrl.text,
+      birthday: formatter.format(selectedDate).toString(),
+      gender: _dropDownValue,
+      role_id: 3,
+      join_at: DateFormat('yyyy-MM-dd').format(DateTime.now()),
+    );
+    print(account.toMap());
     await GlobalUtils.dbInstance.ref("users/${usernameTxtCtrl.text}/").set({
       "username": usernameTxtCtrl.text,
       "name": nameTxtCtrl.text,
@@ -38,6 +52,7 @@ class signupPageState extends State<SignUpPage> {
       "birthday": formatter.format(selectedDate).toString(),
       "gender": _dropDownValue,
       "role_id": 3,
+      "join_at": DateFormat('yyyy-MM-dd').format(DateTime.now()),
     }).then((_) {
       print("Set success");
     }).catchError((onError) {
@@ -46,6 +61,10 @@ class signupPageState extends State<SignUpPage> {
     setState(() {
       MainApp.loading = false;
     });
+    Navigator.pop(context);
+    context.read<GlobalUtils>().loginFunc(context);
+    ScaffoldMessenger.of(context)
+        .showSnackBar(GlobalUtils.createSnackBar(context, "Success!!"));
   }
 
   Future<void> _selectDate(BuildContext context) async {
@@ -68,26 +87,7 @@ class signupPageState extends State<SignUpPage> {
       appBar: AppBar(
         automaticallyImplyLeading: false,
         backgroundColor: Colors.black,
-        title: Align(
-          alignment: Alignment.centerLeft,
-          child: Row(
-            children: [
-              IconButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                  icon: const Icon(
-                    Icons.arrow_back,
-                    color: Colors.white,
-                  )),
-              const SizedBox(width: 20),
-              const Text(
-                "Register",
-                style: TextStyle(color: Colors.white),
-              ),
-            ],
-          ),
-        ),
+        title: const AppBarBackButton(),
       ),
       body: Container(
         padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -141,8 +141,9 @@ class signupPageState extends State<SignUpPage> {
                               height: 63,
                               color: Colors.transparent,
                               child: InputDecorator(
-                                decoration: GlobalUtils.inputDecorationBlack(
-                                    labelText: "Gender"),
+                                decoration: context
+                                    .read<GlobalUtils>()
+                                    .inputDecorationBlack(labelText: "Gender"),
                                 child: DropdownButtonHideUnderline(
                                   child: DropdownButton(
                                       dropdownColor: Colors.black,
@@ -208,7 +209,9 @@ class EmailField extends StatelessWidget {
         controller: ctrl,
         style: const TextStyle(color: Colors.white),
         validator: MyHelper.validateEmail,
-        decoration: GlobalUtils.inputDecorationBlack(labelText: "Email"),
+        decoration: context
+            .read<GlobalUtils>()
+            .inputDecorationBlack(labelText: "Email"),
       ),
     );
   }
@@ -227,7 +230,9 @@ class PasswordField extends StatelessWidget {
     return TextField(
         controller: ctrl,
         style: const TextStyle(color: Colors.white),
-        decoration: GlobalUtils.inputDecorationBlack(labelText: "Password"));
+        decoration: context
+            .read<GlobalUtils>()
+            .inputDecorationBlack(labelText: "Password"));
   }
 }
 
@@ -244,7 +249,9 @@ class NameField extends StatelessWidget {
     return TextField(
         controller: ctrl,
         style: const TextStyle(color: Colors.white),
-        decoration: GlobalUtils.inputDecorationBlack(labelText: "Fullname"));
+        decoration: context
+            .read<GlobalUtils>()
+            .inputDecorationBlack(labelText: "Fullname"));
   }
 }
 
@@ -258,7 +265,9 @@ class UsernameField extends StatelessWidget {
     return TextField(
       controller: ctrl,
       style: const TextStyle(color: Colors.white),
-      decoration: GlobalUtils.inputDecorationBlack(labelText: "Username"),
+      decoration: context
+          .read<GlobalUtils>()
+          .inputDecorationBlack(labelText: "Username"),
     );
   }
 }

@@ -13,4 +13,8 @@ class MyHelper {
         ? 'Enter a valid email address'
         : null;
   }
+
+  static String getHourMinFromMin(int min) {
+    return "${(min ~/ 60)} hour ${min % 60} min";
+  }
 }
