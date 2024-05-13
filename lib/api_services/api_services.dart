@@ -59,6 +59,26 @@ class APIService {
     return [];
   }
 
+  static Future<List<Room_Seat>?> getRoomSeatList(String roomId) async {
+    List<Room_Seat> roomSeat = [];
+    var snapshot = await GlobalUtils.dbInstance
+        .ref()
+        .child('room_seat')
+        .child(roomId)
+        .get();
+    if (snapshot.exists) {
+      final data = snapshot.value;
+      if (data == null) return null;
+      for (var child in snapshot.children) {
+        roomSeat.add(Room_Seat.fromMap(child.value as Map));
+      }
+      return roomSeat;
+    } else {
+      print('No data available.');
+    }
+    return [];
+  }
+
   static Future<Participant?> getParticipantByID(int id) async {
     var snapshot = await GlobalUtils.dbInstance
         .ref()

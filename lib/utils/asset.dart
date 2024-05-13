@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -71,7 +72,39 @@ class GlobalUtils extends ChangeNotifier {
     notifyListeners();
   }
 
+  static Future checkState() async {
+    FirebaseAuth.instance.authStateChanges().listen((User? user) {
+      if (user == null) {
+        print('User is currently signed out!');
+        _signIn();
+      } else {
+        print('User is signed in!');
+        GlobalUtils.dbInstance = FirebaseDatabase.instance;
+      }
+    });
+  }
+
+  static Future _signIn() async {
+    var email = "nguyenhbyg9@gmail.com";
+    var password = "19012003@";
+    try {
+      UserCredential userCredential =
+          await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+      GlobalUtils.dbInstance = FirebaseDatabase.instance;
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'user-not-found') {
+        print('No user found for that email.');
+      } else if (e.code == 'wrong-password') {
+        print('Wrong password provided for that user.');
+      }
+    }
+  }
+
   Future<void> initLoginCheck() async {
+    await checkState();
     sharedPrefs = await SharedPreferences.getInstance();
     notifyListeners();
     String? username = sharedPrefs.getString('username');

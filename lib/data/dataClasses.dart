@@ -80,6 +80,38 @@ class Genre {
       Genre.fromMap(json.decode(source) as Map<String, dynamic>);
 }
 
+class Room_Seat {
+  String roomId;
+  String id;
+  int seatType;
+  Room_Seat({
+    required this.roomId,
+    required this.id,
+    required this.seatType,
+  });
+
+  Map<String, dynamic> toMap() {
+    return <String, dynamic>{
+      'roomId': roomId,
+      'id': id,
+      'seatType': seatType,
+    };
+  }
+
+  factory Room_Seat.fromMap(Map<dynamic, dynamic> map) {
+    return Room_Seat(
+      roomId: map['roomId'] as String,
+      id: map['id'] as String,
+      seatType: map['seatType'] as int,
+    );
+  }
+
+  String toJson() => json.encode(toMap());
+
+  factory Room_Seat.fromJson(String source) =>
+      Room_Seat.fromMap(json.decode(source) as Map<String, dynamic>);
+}
+
 class Participant {
   int gender;
   int id;

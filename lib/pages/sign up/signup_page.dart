@@ -30,9 +30,6 @@ class signupPageState extends State<SignUpPage> {
 
   void signup() async {
     print("Sign UPPPPPPPPPP");
-    setState(() {
-      MainApp.loading = true;
-    });
     Account account = Account(
       username: usernameTxtCtrl.text,
       name: nameTxtCtrl.text,
@@ -57,9 +54,6 @@ class signupPageState extends State<SignUpPage> {
       print("Set success");
     }).catchError((onError) {
       print(onError);
-    });
-    setState(() {
-      MainApp.loading = false;
     });
     Navigator.pop(context);
     context.read<GlobalUtils>().loginFunc(context);

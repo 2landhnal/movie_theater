@@ -17,4 +17,8 @@ class MyHelper {
   static String getHourMinFromMin(int min) {
     return "${(min ~/ 60)} hour ${min % 60} min";
   }
+
+  static String toUpper(String s) {
+    return s.toUpperCase();
+  }
 }
