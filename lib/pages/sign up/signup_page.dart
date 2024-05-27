@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:intl/intl.dart';
+import 'package:movie_theater/api_services/api_services.dart';
 import 'package:movie_theater/data/dataClasses.dart';
 import 'package:movie_theater/helpers/helper.dart';
 import 'package:movie_theater/my_app.dart';
@@ -22,7 +23,7 @@ class signupPageState extends State<SignUpPage> {
   DateFormat formatter = DateFormat('yyyy-MM-dd');
   bool datePicked = false;
   static List<String> genderList = <String>['Male', 'Female', 'Other'];
-  String _dropDownValue = "";
+  String _dropDownValue = "Male";
   TextEditingController usernameTxtCtrl = TextEditingController(),
       passwordTxtCtrl = TextEditingController(),
       nameTxtCtrl = TextEditingController(),
@@ -30,32 +31,38 @@ class signupPageState extends State<SignUpPage> {
 
   void signup() async {
     print("Sign UPPPPPPPPPP");
+    var checkAccount =
+        await APIService.getAccountByAccount(usernameTxtCtrl.text);
+    if (checkAccount != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+          GlobalUtils.createSnackBar(context, "Username already exist!"));
+      return;
+    }
+    if (usernameTxtCtrl.text == "" ||
+        passwordTxtCtrl.text == "" ||
+        nameTxtCtrl.text == "" ||
+        emailTxtCtrl.text == "") {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(GlobalUtils.createSnackBar(context, "Not valid!"));
+      return;
+    }
     Account account = Account(
       username: usernameTxtCtrl.text,
+      password: MyHelper.hash(passwordTxtCtrl.text),
+      role_id: 3,
+    );
+    Customer customer = Customer(
+      username: usernameTxtCtrl.text,
       name: nameTxtCtrl.text,
-      password: passwordTxtCtrl.text,
       email: emailTxtCtrl.text,
       birthday: formatter.format(selectedDate).toString(),
       gender: _dropDownValue,
-      role_id: 3,
       join_at: DateFormat('yyyy-MM-dd').format(DateTime.now()),
     );
-    print(account.toMap());
-    await GlobalUtils.dbInstance.ref("users/${usernameTxtCtrl.text}/").set({
-      "username": usernameTxtCtrl.text,
-      "name": nameTxtCtrl.text,
-      "password": passwordTxtCtrl.text,
-      "email": emailTxtCtrl.text,
-      "birthday": formatter.format(selectedDate).toString(),
-      "gender": _dropDownValue,
-      "role_id": 3,
-      "join_at": DateFormat('yyyy-MM-dd').format(DateTime.now()),
-    }).then((_) {
-      print("Set success");
-    }).catchError((onError) {
-      print(onError);
-    });
-    Navigator.pop(context);
+    await APIService.pushToFireBase(
+        "accounts/${usernameTxtCtrl.text}/", account.toMap());
+    await APIService.pushToFireBase(
+        "customers/${usernameTxtCtrl.text}/", customer.toMap());
     context.read<GlobalUtils>().loginFunc(context);
     ScaffoldMessenger.of(context)
         .showSnackBar(GlobalUtils.createSnackBar(context, "Success!!"));
@@ -92,90 +99,93 @@ class signupPageState extends State<SignUpPage> {
               child: Center(
                 child: SingleChildScrollView(
                   scrollDirection: Axis.vertical,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      UsernameField(ctrl: usernameTxtCtrl),
-                      const SizedBox(height: 10),
-                      PasswordField(ctrl: passwordTxtCtrl),
-                      const SizedBox(height: 10),
-                      NameField(ctrl: nameTxtCtrl),
-                      const SizedBox(height: 10),
-                      EmailField(ctrl: emailTxtCtrl),
-                      const SizedBox(height: 10),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          SizedBox(
-                            width: MediaQuery.sizeOf(context).width / 2.4,
-                            child: TextFormField(
-                              style: const TextStyle(color: Colors.white),
-                              controller: TextEditingController(
-                                  text: datePicked
-                                      ? formatter.format(selectedDate)
-                                      : "Birthday"),
-                              validator: MyHelper.validateEmail,
-                              onTap: () => _selectDate(context),
-                              decoration: const InputDecoration(
-                                filled: true,
-                                fillColor: Colors.transparent,
-                                border: OutlineInputBorder(),
-                                labelText: "Birthday",
-                                labelStyle: TextStyle(color: Colors.white),
-                                suffixIcon: Icon(
-                                  Icons.arrow_drop_down,
-                                  color: Colors.white38,
+                  child: Form(
+                    autovalidateMode: AutovalidateMode.onUserInteraction,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        UsernameField(ctrl: usernameTxtCtrl),
+                        const SizedBox(height: 10),
+                        PasswordField(ctrl: passwordTxtCtrl),
+                        const SizedBox(height: 10),
+                        NameField(ctrl: nameTxtCtrl),
+                        const SizedBox(height: 10),
+                        EmailField(ctrl: emailTxtCtrl),
+                        const SizedBox(height: 10),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            SizedBox(
+                              width: MediaQuery.sizeOf(context).width / 2.4,
+                              child: TextFormField(
+                                style: const TextStyle(color: Colors.white),
+                                controller: TextEditingController(
+                                    text: datePicked
+                                        ? formatter.format(selectedDate)
+                                        : "Birthday"),
+                                onTap: () => _selectDate(context),
+                                decoration: const InputDecoration(
+                                  filled: true,
+                                  fillColor: Colors.transparent,
+                                  border: OutlineInputBorder(),
+                                  labelText: "Birthday",
+                                  labelStyle: TextStyle(color: Colors.white),
+                                  suffixIcon: Icon(
+                                    Icons.arrow_drop_down,
+                                    color: Colors.white38,
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: Container(
-                              height: 63,
-                              color: Colors.transparent,
-                              child: InputDecorator(
-                                decoration: context
-                                    .read<GlobalUtils>()
-                                    .inputDecorationBlack(labelText: "Gender"),
-                                child: DropdownButtonHideUnderline(
-                                  child: DropdownButton(
-                                      dropdownColor: Colors.black,
-                                      hint: _dropDownValue == ""
-                                          ? const Text(
-                                              'Dropdown',
-                                              style: TextStyle(
-                                                  color: Colors.white),
-                                            )
-                                          : Text(
-                                              _dropDownValue,
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Container(
+                                height: 63,
+                                color: Colors.transparent,
+                                child: InputDecorator(
+                                  decoration: context
+                                      .read<GlobalUtils>()
+                                      .inputDecorationBlack(
+                                          labelText: "Gender"),
+                                  child: DropdownButtonHideUnderline(
+                                    child: DropdownButton(
+                                        dropdownColor: Colors.black,
+                                        hint: _dropDownValue == ""
+                                            ? const Text(
+                                                'Dropdown',
+                                                style: TextStyle(
+                                                    color: Colors.white),
+                                              )
+                                            : Text(
+                                                _dropDownValue,
+                                                style: const TextStyle(
+                                                    color: Colors.white),
+                                              ),
+                                        items: genderList.map((String e) {
+                                          return DropdownMenuItem(
+                                            value: e,
+                                            child: Text(
+                                              e,
                                               style: const TextStyle(
                                                   color: Colors.white),
                                             ),
-                                      items: genderList.map((String e) {
-                                        return DropdownMenuItem(
-                                          value: e,
-                                          child: Text(
-                                            e,
-                                            style: const TextStyle(
-                                                color: Colors.white),
-                                          ),
-                                        );
-                                      }).toList(),
-                                      onChanged: (val) {
-                                        setState(() {
-                                          _dropDownValue = val!;
-                                        });
-                                      }),
+                                          );
+                                        }).toList(),
+                                        onChanged: (val) {
+                                          setState(() {
+                                            _dropDownValue = val!;
+                                          });
+                                        }),
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 10),
-                      SignUpButton(onClick: signup),
-                    ],
+                          ],
+                        ),
+                        const SizedBox(height: 10),
+                        SignUpButton(onClick: signup),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -221,7 +231,11 @@ class PasswordField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return TextField(
+    return TextFormField(
+        validator: MyHelper.validateNull,
+        obscureText: true,
+        enableSuggestions: false,
+        autocorrect: false,
         controller: ctrl,
         style: const TextStyle(color: Colors.white),
         decoration: context
@@ -240,7 +254,8 @@ class NameField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return TextField(
+    return TextFormField(
+        validator: MyHelper.validateNull,
         controller: ctrl,
         style: const TextStyle(color: Colors.white),
         decoration: context
@@ -256,7 +271,8 @@ class UsernameField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return TextField(
+    return TextFormField(
+      validator: MyHelper.validateNull,
       controller: ctrl,
       style: const TextStyle(color: Colors.white),
       decoration: context
@@ -266,18 +282,31 @@ class UsernameField extends StatelessWidget {
   }
 }
 
-class SignUpButton extends StatelessWidget {
+class SignUpButton extends StatefulWidget {
   SignUpButton({super.key, required this.onClick});
 
   Function onClick;
+
+  @override
+  State<SignUpButton> createState() => _SignUpButtonState();
+}
+
+class _SignUpButtonState extends State<SignUpButton> {
+  bool loading = false;
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
       width: double.infinity,
       child: TextButton(
-        onPressed: () {
-          onClick();
+        onPressed: () async {
+          setState(() {
+            loading = true;
+          });
+          await widget.onClick();
+          setState(() {
+            loading = false;
+          });
         },
         style: ButtonStyle(
           backgroundColor: MaterialStateProperty.all<Color>(Colors.black),
@@ -289,7 +318,12 @@ class SignUpButton extends StatelessWidget {
               ),
               borderRadius: BorderRadius.circular(0))),
         ),
-        child: const Text("Sign up"),
+        child: loading
+            ? const CircularProgressIndicator(
+                color: Colors.white,
+                strokeWidth: 3,
+              )
+            : const Text("Sign up"),
       ),
     );
   }

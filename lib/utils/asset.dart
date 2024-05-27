@@ -10,13 +10,14 @@ import 'package:movie_theater/pages/sign%20up/signup_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class GlobalUtils extends ChangeNotifier {
-  Account? currentAccount;
+  static Account? currentAccount;
   static late FirebaseDatabase dbInstance;
   static late SharedPreferences sharedPrefs;
   static MaterialColor purpleTextColor = Colors.deepPurple;
   static late List<Movie> currentMovieList;
   static DateFormat globalDateFormat = DateFormat('yyyy-MM-dd');
   void loginFunc(BuildContext context) {
+    Navigator.pop(context);
     Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => LoginPage()),
@@ -58,7 +59,6 @@ class GlobalUtils extends ChangeNotifier {
   }
 
   void signUpFunc(BuildContext context) {
-    Navigator.pop(context);
     Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => const SignUpPage()),
@@ -109,7 +109,7 @@ class GlobalUtils extends ChangeNotifier {
     notifyListeners();
     String? username = sharedPrefs.getString('username');
     if (username != null) {
-      Account? acc = await APIService.getUserByAccount(username);
+      Account? acc = await APIService.getAccountByAccount(username);
       if (acc != null) {
         currentAccount = acc;
         notifyListeners();
@@ -121,9 +121,11 @@ class GlobalUtils extends ChangeNotifier {
     }
   }
 
-  void loginAccount(Account acc) {
+  void loginAccount(Account acc, BuildContext context) {
     currentAccount = acc;
     notifyListeners();
+    // ScaffoldMessenger.of(context)
+    //     .showSnackBar(GlobalUtils.createSnackBar(context, "Success!!"));
   }
 
   InputDecoration inputDecorationBlack({

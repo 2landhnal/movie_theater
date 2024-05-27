@@ -154,63 +154,8 @@ class MovieDetail extends StatelessWidget {
                           child: Column(
                             children: [
                               SizedBox(height: screenSize.height / 4.4),
-                              Row(
-                                children: [
-                                  Container(
-                                    width: screenSize.width / 4,
-                                    height: screenSize.width / 4 * 3 / 2,
-                                    decoration: BoxDecoration(
-                                      image: DecorationImage(
-                                          fit: BoxFit.cover,
-                                          image: NetworkImage(
-                                              movie.getPosterFullPath())),
-                                      //color: Colors.amber,
-                                      borderRadius: const BorderRadius.all(
-                                          Radius.circular(8.0)),
-                                    ),
-                                  ),
-                                  Flexible(
-                                    child: Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 10),
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          // Title
-                                          Text(
-                                            movie.title,
-                                            overflow: TextOverflow.fade,
-                                            softWrap: false,
-                                            style: const TextStyle(
-                                              color: Colors.white,
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 18,
-                                            ),
-                                          ),
-
-                                          //Release Date
-                                          Row(
-                                            children: [
-                                              BoxBorderWithIconAndText(
-                                                content: movie.release_date,
-                                                icon: Icons.calendar_month,
-                                              ),
-                                              const SizedBox(width: 10),
-                                              BoxBorderWithIconAndText(
-                                                content:
-                                                    MyHelper.getHourMinFromMin(
-                                                        movie.runtime),
-                                                icon: Icons.timelapse,
-                                              )
-                                            ],
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  )
-                                ],
-                              ),
+                              MovieInfoRowLayout(
+                                  screenSize: screenSize, movie: movie),
                               const SizedBox(height: 20),
                               Text(
                                 movie.overview,
@@ -264,6 +209,72 @@ class MovieDetail extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+class MovieInfoRowLayout extends StatelessWidget {
+  const MovieInfoRowLayout({
+    super.key,
+    required this.screenSize,
+    required this.movie,
+  });
+
+  final Size screenSize;
+  final Movie movie;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Container(
+          width: screenSize.width / 4,
+          height: screenSize.width / 4 * 3 / 2,
+          decoration: BoxDecoration(
+            image: DecorationImage(
+                fit: BoxFit.cover,
+                image: NetworkImage(movie.getPosterFullPath())),
+            //color: Colors.amber,
+            borderRadius: const BorderRadius.all(Radius.circular(8.0)),
+          ),
+        ),
+        Flexible(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 10),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Title
+                Text(
+                  movie.title,
+                  overflow: TextOverflow.fade,
+                  softWrap: false,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18,
+                  ),
+                ),
+
+                //Release Date
+                Row(
+                  children: [
+                    BoxBorderWithIconAndText(
+                      content: movie.release_date,
+                      icon: Icons.calendar_month,
+                    ),
+                    const SizedBox(width: 10),
+                    BoxBorderWithIconAndText(
+                      content: MyHelper.getHourMinFromMin(movie.runtime),
+                      icon: Icons.timelapse,
+                    )
+                  ],
+                ),
+              ],
+            ),
+          ),
+        )
+      ],
     );
   }
 }

@@ -40,6 +40,10 @@ class NewsWidget extends StatelessWidget {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(10),
             color: Colors.white,
+            image: const DecorationImage(
+                image: NetworkImage(
+                    "https://media.vanityfair.com/photos/65bc53b6dbcc8f7a911121f8/master/pass/DUN2-T3-0084r.jpg"),
+                fit: BoxFit.cover),
           ),
         ),
         Text(

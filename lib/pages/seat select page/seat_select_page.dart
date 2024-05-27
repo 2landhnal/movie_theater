@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:movie_theater/api_services/api_services.dart';
@@ -9,18 +10,49 @@ import 'package:movie_theater/data/dataClasses.dart';
 import 'package:movie_theater/helpers/helper.dart';
 import 'package:movie_theater/pages/home/widgets/appbar_back_button.dart';
 import 'package:movie_theater/pages/home/widgets/side_sheet_active_button.dart';
+import 'package:movie_theater/pages/login/login_page.dart';
+import 'package:movie_theater/pages/pay/pay_page.dart';
+import 'package:movie_theater/utils/asset.dart';
+
+import 'seat_box.dart';
 
 class SeatSelectPage extends StatelessWidget {
-  SeatSelectPage({super.key});
+  SeatSelectPage({super.key, required this.schedule, required this.theater});
+  Schedule schedule;
+  Theater theater;
 
   Map<String, List<int>> seatMap = <String, List<int>>{};
+  ValueNotifier<List<Ticket>> selectingTickets =
+      ValueNotifier<List<Ticket>>([]);
+
+  void AddTicket(Ticket tic) {
+    selectingTickets.value = List.from(selectingTickets.value)..add(tic);
+  }
+
+  void RemoveTicket(Ticket tic) {
+    selectingTickets.value = List.from(selectingTickets.value)
+      ..removeWhere((element) => element.id == tic.id);
+  }
+
+  void Click(Ticket tic) {
+    if (List.from(selectingTickets.value).contains(tic)) {
+      RemoveTicket(tic);
+    } else {
+      AddTicket(tic);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return FutureBuilder(
-      future: APIService.getRoomSeatList("0_4"),
-      initialData: null,
-      builder: (context, snapshot) {
+      future: Future.wait(
+        [
+          APIService.getRoomSeatList(schedule.roomId),
+          APIService.getMovieById(schedule.movieId),
+          APIService.getTicketListBySchedulenRoomMap(schedule.id)
+        ],
+      ),
+      builder: (context, AsyncSnapshot<List<dynamic>> snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(
               child:
@@ -33,13 +65,21 @@ class SeatSelectPage extends StatelessWidget {
             style: ThemeConfig.nearlyWhiteTextStyle(),
           ); // Xử lý lỗi
         }
-        List<Room_Seat> result = snapshot.data as List<Room_Seat>;
+        List<Room_Seat> result = snapshot.data![0] as List<Room_Seat>;
+        List<Ticket> tickets = snapshot.data![2] as List<Ticket>;
         List<Room_Seat> seats = [];
+        Map<String, Ticket> ticketMap = {};
+
+        for (var i in tickets) {
+          ticketMap[i.seatId] = i;
+        }
+
         int maxCol = 0;
         int maxRow = 0;
+        Movie movie = snapshot.data![1];
         for (int i = 0; i < result.length; i++) {
-          String firstLeter = result[i].id[0];
-          int index = int.parse(result[i].id.substring(1));
+          String firstLeter = result[i].name[0];
+          int index = int.parse(result[i].name.substring(1));
           if (seatMap[firstLeter] == null) {
             seatMap[firstLeter] = [];
           }
@@ -51,8 +91,8 @@ class SeatSelectPage extends StatelessWidget {
         }
         for (var key in seatMap.keys) {
           for (int value in seatMap[key]!) {
-            seats.add(result
-                .firstWhere((element) => element.id == key + value.toString()));
+            seats.add(result.firstWhere(
+                (element) => element.name == key + value.toString()));
           }
           maxRow += 1;
         }
@@ -65,7 +105,6 @@ class SeatSelectPage extends StatelessWidget {
         double seatSecWidth = MediaQuery.sizeOf(context).width * 0.08 * maxCol +
             1 * (maxCol - 1) +
             hPadding * 2;
-        print(maxRow);
         return Scaffold(
           appBar: AppBar(
             //centerTitle: true,
@@ -76,14 +115,18 @@ class SeatSelectPage extends StatelessWidget {
             // ),
             automaticallyImplyLeading: false,
             backgroundColor: Colors.black,
-            title: const Row(
+            title: Row(
               children: [
-                AppBarBackButton(),
-                Text(
-                  "Seat select",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
+                const AppBarBackButton(),
+                Expanded(
+                  child: Text(
+                    movie.title,
+                    overflow: TextOverflow.fade,
+                    softWrap: false,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ],
@@ -125,16 +168,11 @@ class SeatSelectPage extends StatelessWidget {
                             seats.length,
                             (index) => Visibility(
                                   visible: seats[index].seatType != 0,
-                                  child: Container(
-                                    color: seats[index].seatType == 2
-                                        ? Colors.red
-                                        : const Color.fromARGB(
-                                            255, 206, 192, 191),
-                                    child: Center(
-                                        child: Text(
-                                      seats[index].id,
-                                      style: const TextStyle(fontSize: 8),
-                                    )),
+                                  child: SeatBox(
+                                    ticket: ticketMap[seats[index].id]!,
+                                    seat: seats[index],
+                                    index: index,
+                                    onClick: Click,
                                   ),
                                 )),
                       ),
@@ -144,42 +182,102 @@ class SeatSelectPage extends StatelessWidget {
               ),
             ),
           ),
-          bottomNavigationBar: BottomAppBar(
+          bottomNavigationBar: SeatSelectBottom(
+            movie: movie,
+            selectingTickets: selectingTickets,
+            schedule: schedule,
+            theater: theater,
+          ),
+        );
+      },
+    );
+  }
+}
+
+class SeatSelectBottom extends StatefulWidget {
+  const SeatSelectBottom({
+    super.key,
+    required this.movie,
+    required this.selectingTickets,
+    required this.schedule,
+    required this.theater,
+  });
+
+  final Movie movie;
+  final Schedule schedule;
+  final Theater theater;
+  final ValueNotifier<List<Ticket>> selectingTickets;
+
+  @override
+  State<SeatSelectBottom> createState() => _SeatSelectBottomState();
+}
+
+class _SeatSelectBottomState extends State<SeatSelectBottom> {
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder<List<Ticket>>(
+        valueListenable: widget.selectingTickets,
+        builder: (context, value, child) {
+          return BottomAppBar(
             height: MediaQuery.sizeOf(context).height / 10,
             color: Colors.black,
             child: Row(
               mainAxisSize: MainAxisSize.max,
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: <Widget>[
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      MyHelper.toUpper("Dune 2"),
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        MyHelper.toUpper(widget.movie.title),
+                        overflow: TextOverflow.fade,
+                        softWrap: false,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
                       ),
-                    ),
-                    const Text(
-                      "2D English Sub | Golden Class ",
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 14,
+                      const Text(
+                        "2D English Sub | Golden Class",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 14,
+                        ),
                       ),
-                    ),
-                    const Text(
-                      "0\$",
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 14,
+                      Text(
+                        "${widget.selectingTickets.value.isEmpty ? 0 : widget.selectingTickets.value.map((ticket) => ticket.getPrice()).reduce((a, b) => a + b)}\$",
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 14,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
                 TextButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    if (GlobalUtils.currentAccount == null) {
+                      //Navigator.of(context).popUntil((route) => route.isFirst);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => LoginPage()),
+                      );
+                      return;
+                    }
+                    if (widget.selectingTickets.value.isEmpty) return;
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => PayPage(
+                                movie: widget.movie,
+                                schedule: widget.schedule,
+                                theater: widget.theater,
+                                ticketList: widget.selectingTickets.value,
+                              )),
+                    );
+                  },
                   style: ButtonStyle(
                     backgroundColor:
                         MaterialStateProperty.all<Color>(Colors.red),
@@ -191,9 +289,7 @@ class SeatSelectPage extends StatelessWidget {
                 //add as many tabs as you want here
               ],
             ),
-          ),
-        );
-      },
-    );
+          );
+        });
   }
 }

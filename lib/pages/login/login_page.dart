@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:movie_theater/api_services/api_services.dart';
+import 'package:movie_theater/helpers/helper.dart';
 import 'package:movie_theater/pages/home/widgets/appbar_back_button.dart';
 import 'package:movie_theater/utils/asset.dart';
 import 'package:provider/provider.dart';
@@ -10,17 +11,25 @@ class LoginPage extends StatelessWidget {
 
   TextEditingController usernameTxtCtrl = TextEditingController(),
       passwordTxtCtrl = TextEditingController();
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   void login(BuildContext context) async {
     print("Login In clicked!");
-    var result = await APIService.getUserByAccount(usernameTxtCtrl.text);
-    print("result == null: ${result == null}");
-    if (result == null) return;
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+    var result = await APIService.getAccountByAccount(usernameTxtCtrl.text);
+    if (result == null) {
+      return;
+    }
+    if (MyHelper.hash(passwordTxtCtrl.text) != result.password) {
+      return;
+    }
     GlobalUtils.sharedPrefs.setString("username", result.username);
-    context.read<GlobalUtils>().loginAccount(result);
+    context.read<GlobalUtils>().loginAccount(result, context);
     Navigator.pop(context);
-    ScaffoldMessenger.of(context)
-        .showSnackBar(GlobalUtils.createSnackBar(context, "Success!!"));
+    // ScaffoldMessenger.of(context)
+    //     .showSnackBar(GlobalUtils.createSnackBar(context, "Success!!"));
   }
 
   @override
@@ -39,18 +48,22 @@ class LoginPage extends StatelessWidget {
             Expanded(
               child: Center(
                 child: SingleChildScrollView(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      UsernameField(ctrl: usernameTxtCtrl),
-                      const SizedBox(height: 10),
-                      PasswordField(ctrl: passwordTxtCtrl),
-                      const SizedBox(height: 10),
-                      SignInButton(
-                        onClick: login,
-                      ),
-                      const SignUpButton(),
-                    ],
+                  child: Form(
+                    key: _formKey,
+                    autovalidateMode: AutovalidateMode.always,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        UsernameField(ctrl: usernameTxtCtrl),
+                        const SizedBox(height: 10),
+                        PasswordField(ctrl: passwordTxtCtrl),
+                        const SizedBox(height: 10),
+                        SignInButton(
+                          onClick: login,
+                        ),
+                        const SignUpButton(),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -68,8 +81,12 @@ class PasswordField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return TextField(
+    return TextFormField(
+      validator: MyHelper.validateNull,
       style: const TextStyle(color: Colors.white),
+      obscureText: true,
+      enableSuggestions: false,
+      autocorrect: false,
       controller: ctrl,
       decoration: context
           .read<GlobalUtils>()
@@ -84,7 +101,8 @@ class UsernameField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return TextField(
+    return TextFormField(
+        validator: MyHelper.validateNull,
         style: const TextStyle(color: Colors.white),
         controller: ctrl,
         decoration: context
@@ -93,17 +111,35 @@ class UsernameField extends StatelessWidget {
   }
 }
 
-class SignInButton extends StatelessWidget {
-  SignInButton({super.key, required this.onClick});
+class SignInButton extends StatefulWidget {
+  SignInButton({
+    super.key,
+    required this.onClick,
+  });
 
   Function onClick;
+
+  @override
+  State<SignInButton> createState() => _SignInButtonState();
+}
+
+class _SignInButtonState extends State<SignInButton> {
+  bool loading = false;
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
       width: double.infinity,
       child: TextButton(
-        onPressed: () => onClick(context),
+        onPressed: () async {
+          setState(() {
+            loading = true;
+          });
+          await widget.onClick(context);
+          setState(() {
+            loading = false;
+          });
+        },
         style: ButtonStyle(
           backgroundColor: MaterialStateProperty.all<Color>(Colors.black),
           foregroundColor: MaterialStateProperty.all<Color>(Colors.white),
@@ -114,7 +150,12 @@ class SignInButton extends StatelessWidget {
               ),
               borderRadius: BorderRadius.circular(0))),
         ),
-        child: const Text("Log in"),
+        child: loading
+            ? const CircularProgressIndicator(
+                color: Colors.white,
+                strokeWidth: 3,
+              )
+            : const Text("Log in"),
       ),
     );
   }
@@ -131,7 +172,6 @@ class SignUpButton extends StatelessWidget {
       width: double.infinity,
       child: TextButton(
         onPressed: () {
-          Navigator.pop(context);
           context.read<GlobalUtils>().signUpFunc(context);
         },
         style: ButtonStyle(

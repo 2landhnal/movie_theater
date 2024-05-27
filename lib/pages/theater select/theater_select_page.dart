@@ -1,11 +1,17 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 
 import 'package:intl/intl.dart';
+import 'package:movie_theater/api_services/api_services.dart';
 import 'package:movie_theater/config/config_theme.dart';
 import 'package:movie_theater/data/dataClasses.dart';
+import 'package:movie_theater/helpers/helper.dart';
 import 'package:movie_theater/pages/home/widgets/appbar_back_button.dart';
 import 'package:movie_theater/pages/home/widgets/side_sheet_active_button.dart';
+import 'package:movie_theater/pages/login/login_page.dart';
+import 'package:movie_theater/pages/seat%20select%20page/seat_select_page.dart';
+import 'package:movie_theater/utils/asset.dart';
 
 class TheaterSelectPage extends StatefulWidget {
   TheaterSelectPage({
@@ -23,10 +29,32 @@ class _TheaterSelectPageState extends State<TheaterSelectPage> {
   List<DateTime> dateList = [];
 
   DateTime _selectingDate = DateTime.now();
+  List<Schedule> currentScheduleList = [];
+  List<Theater> currentTheaterList = [];
 
-  void setSelectingDate(int index) {
+  Future<void> setSelectingDate(int index) async {
+    List<Theater> tmpTheaterList = [];
     setState(() {
       _selectingDate = dateList[index];
+    });
+    var tmp = (await APIService.getScheduleListByDateAndMovie(
+        MyHelper.getDateTimeFormat(_selectingDate),
+        widget.movie.id.toString()))!;
+    //print(MyHelper.getDateTimeFormat(_selectingDate));
+    setState(() {
+      currentScheduleList = tmp;
+    });
+    //print(currentScheduleList.length);
+    var theaterIdSet = <String>{};
+    for (int i = 0; i < currentScheduleList.length; i++) {
+      theaterIdSet.add(currentScheduleList[i].roomId.split("_")[0]);
+    }
+    for (var id in theaterIdSet) {
+      Theater? newTheater = await APIService.getTheaterById(id);
+      tmpTheaterList.add(newTheater!);
+    }
+    setState(() {
+      currentTheaterList = tmpTheaterList;
     });
   }
 
@@ -49,11 +77,15 @@ class _TheaterSelectPageState extends State<TheaterSelectPage> {
         title: Row(
           children: [
             const AppBarBackButton(),
-            Text(
-              widget.movie.title,
-              style: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
+            Expanded(
+              child: Text(
+                widget.movie.title,
+                overflow: TextOverflow.fade,
+                softWrap: false,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
           ],
@@ -79,7 +111,16 @@ class _TheaterSelectPageState extends State<TheaterSelectPage> {
               onTap: setSelectingDate,
             ),
             Column(
-              children: List.generate(10, (index) => const TheaterRow()),
+              children: List.generate(
+                  currentTheaterList.length,
+                  (index) => TheaterRow(
+                        theater: currentTheaterList[index],
+                        scheduleList: currentScheduleList
+                            .where((element) =>
+                                element.roomId.split("_")[0] ==
+                                currentTheaterList[index].id.toString())
+                            .toList(),
+                      )),
             )
           ],
         ),
@@ -89,9 +130,13 @@ class _TheaterSelectPageState extends State<TheaterSelectPage> {
 }
 
 class TheaterRow extends StatefulWidget {
-  const TheaterRow({
+  TheaterRow({
     super.key,
+    required this.theater,
+    required this.scheduleList,
   });
+  Theater theater;
+  List<Schedule> scheduleList;
 
   @override
   State<TheaterRow> createState() => _TheaterRowState();
@@ -99,6 +144,16 @@ class TheaterRow extends StatefulWidget {
 
 class _TheaterRowState extends State<TheaterRow> {
   bool showSchedule = false;
+  var theater;
+  var scheduleList;
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    theater = widget.theater;
+    scheduleList = widget.scheduleList;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -116,17 +171,17 @@ class _TheaterRowState extends State<TheaterRow> {
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
           child: Column(
             children: [
-              const Row(
+              Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    "CGV AEON MALL",
-                    style: TextStyle(
+                    theater.name,
+                    style: const TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  Icon(
+                  const Icon(
                     Icons.arrow_drop_down,
                     color: Colors.white,
                   ),
@@ -138,9 +193,12 @@ class _TheaterRowState extends State<TheaterRow> {
                   scrollDirection: Axis.horizontal,
                   child: Row(
                     children: List.generate(
-                      20,
+                      scheduleList.length * 2 - 1,
                       (index) => index % 2 == 0
-                          ? const MovieTimePicker()
+                          ? MovieTimePicker(
+                              schedule: scheduleList[index ~/ 2],
+                              theater: theater,
+                            )
                           : const SizedBox(width: 5),
                     ),
                   ),
@@ -155,9 +213,13 @@ class _TheaterRowState extends State<TheaterRow> {
 }
 
 class MovieTimePicker extends StatelessWidget {
-  const MovieTimePicker({
+  MovieTimePicker({
     super.key,
+    required this.schedule,
+    required this.theater,
   });
+  Schedule schedule;
+  Theater theater;
 
   @override
   Widget build(BuildContext context) {
@@ -170,9 +232,21 @@ class MovieTimePicker extends StatelessWidget {
           borderRadius: BorderRadius.circular(5)),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 3.0, horizontal: 5),
-        child: Text("12:10",
-            style:
-                TextStyle(color: ThemeConfig.nearlyWhiteColor, fontSize: 12)),
+        child: GestureDetector(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => SeatSelectPage(
+                        schedule: schedule,
+                        theater: theater,
+                      )),
+            );
+          },
+          child: Text("${schedule.time ~/ 60}:${schedule.time % 60}",
+              style:
+                  TextStyle(color: ThemeConfig.nearlyWhiteColor, fontSize: 12)),
+        ),
       ),
     );
   }
@@ -189,10 +263,6 @@ class TheaterSelectDatePicker extends StatelessWidget {
   List<DateTime> dateList;
   DateTime selectingDate;
   Function onTap;
-
-  String getDateInfo(DateTime date) {
-    return "${DateFormat('EEEE').format(date)} ${DateFormat("MMMM").format(date)} ${date.day}, ${date.year}";
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -218,8 +288,8 @@ class TheaterSelectDatePicker extends StatelessWidget {
                               : const TextStyle(color: Colors.red),
                     ),
                     GestureDetector(
-                      onTap: () {
-                        onTap(index);
+                      onTap: () async {
+                        await onTap(index);
                       },
                       child: Container(
                         decoration: BoxDecoration(
@@ -252,7 +322,7 @@ class TheaterSelectDatePicker extends StatelessWidget {
             ),
             const SizedBox(height: 10),
             Text(
-              getDateInfo(selectingDate),
+              MyHelper.getDateInfo(selectingDate),
               style: const TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.bold,

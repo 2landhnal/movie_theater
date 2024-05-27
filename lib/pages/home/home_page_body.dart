@@ -41,6 +41,10 @@ class HomePageBody extends StatelessWidget {
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(10),
                         color: Colors.white,
+                        image: const DecorationImage(
+                            image: NetworkImage(
+                                "https://iguov8nhvyobj.vcdn.cloud/media/banner/cache/1/b58515f018eb873dafa430b6f9ae0c1e/2/0/2024_garfield_baby_rolling_banner.jpg"),
+                            fit: BoxFit.cover),
                       ),
                       height: 150,
                       width: double.infinity,
@@ -48,61 +52,31 @@ class HomePageBody extends StatelessWidget {
                   ),
                   const SizedBox(height: 10),
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      Column(
-                        children: [
-                          Container(
-                            width: 80,
-                            height: 80,
-                            decoration: const BoxDecoration(
-                              color: Colors.orange,
-                              shape: BoxShape.circle,
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: List.generate(
+                        3,
+                        (index) => Column(
+                          children: [
+                            Container(
+                              width: 80,
+                              height: 80,
+                              decoration: const BoxDecoration(
+                                color: Colors.orange,
+                                shape: BoxShape.circle,
+                                image: DecorationImage(
+                                    image: NetworkImage(
+                                        "https://iguov8nhvyobj.vcdn.cloud/media/banner/cache/1/b58515f018eb873dafa430b6f9ae0c1e/u/2/u22-240x201-04.png"),
+                                    fit: BoxFit.cover),
+                              ),
                             ),
-                          ),
-                          const SizedBox(height: 5),
-                          Text(
-                            "CGV Store",
-                            style: ThemeConfig.gettextStyle(),
-                          )
-                        ],
-                      ),
-                      Column(
-                        children: [
-                          Container(
-                            width: 80,
-                            height: 80,
-                            decoration: const BoxDecoration(
-                              color: Colors.orange,
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                          const SizedBox(height: 5),
-                          Text(
-                            "CGV Store",
-                            style: ThemeConfig.gettextStyle(),
-                          )
-                        ],
-                      ),
-                      Column(
-                        children: [
-                          Container(
-                            width: 80,
-                            height: 80,
-                            decoration: const BoxDecoration(
-                              color: Colors.orange,
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                          const SizedBox(height: 5),
-                          Text(
-                            "CGV Store",
-                            style: ThemeConfig.gettextStyle(),
-                          )
-                        ],
-                      ),
-                    ],
-                  )
+                            const SizedBox(height: 5),
+                            Text(
+                              "CGV Store",
+                              style: ThemeConfig.gettextStyle(),
+                            )
+                          ],
+                        ),
+                      ))
                 ],
               ),
             ),

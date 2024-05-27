@@ -21,7 +21,7 @@ class HomePage extends StatelessWidget {
         title: Image.network(
           'https://demotimhecgv.goldena.vn/images/logo.png',
           fit: BoxFit.cover,
-          width: screenSize.width / 6,
+          width: screenSize.width / 7,
         ),
         actions: const [
           SideSheetActiveButton(),
@@ -35,34 +35,39 @@ class HomePage extends StatelessWidget {
 }
 
 class SideSheetButton extends StatelessWidget {
-  SideSheetButton({
-    super.key,
-    required this.buttonText,
-    required this.func,
-  });
+  SideSheetButton(
+      {super.key,
+      required this.buttonText,
+      required this.func,
+      this.vPad = 10});
 
   String buttonText;
   Function func;
+  double vPad;
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: double.infinity,
-      child: TextButton(
-        onPressed: () {
-          func();
-        },
-        style: ButtonStyle(
-          backgroundColor: MaterialStateProperty.all<Color>(Colors.black),
-          foregroundColor: MaterialStateProperty.all<Color>(Colors.white),
-          shape: MaterialStateProperty.all(RoundedRectangleBorder(
-              side: const BorderSide(
-                color: Colors.white, // your color here
-                width: 1,
-              ),
-              borderRadius: BorderRadius.circular(0))),
+    return GestureDetector(
+      onTap: () {
+        func();
+      },
+      child: SizedBox(
+        width: double.infinity,
+        child: Container(
+          decoration: const BoxDecoration(
+              border: Border(
+            bottom: BorderSide(color: Colors.white38),
+          )),
+          alignment: Alignment.center,
+          padding: EdgeInsets.symmetric(vertical: vPad),
+          child: Text(
+            buttonText,
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: buttonText == "" ? 5 : 16,
+            ),
+          ),
         ),
-        child: Text(buttonText),
       ),
     );
   }

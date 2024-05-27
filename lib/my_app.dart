@@ -5,8 +5,10 @@ import 'package:movie_theater/pages/home/home_page.dart';
 import 'package:movie_theater/pages/home/home_page_body.dart';
 import 'package:movie_theater/pages/login/login_page.dart';
 import 'package:movie_theater/pages/movie%20detail/movie_detail_page.dart';
+import 'package:movie_theater/pages/pay/pay_page.dart';
 import 'package:movie_theater/pages/seat%20select%20page/seat_select_page.dart';
 import 'package:movie_theater/pages/test/test_firebase.dart';
+import 'package:movie_theater/pages/test/test_push.dart';
 import 'package:movie_theater/pages/theater%20select/theater_select_page.dart';
 import 'package:movie_theater/utils/asset.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -42,9 +44,9 @@ class _MainAppState extends State<MainApp> {
               print("Error: ${snapshot.error}");
               return Text('Error: ${snapshot.error}'); // Xử lý lỗi
             }
-            return MaterialApp(
+            return const MaterialApp(
               debugShowCheckedModeBanner: false,
-              home: SeatSelectPage(),
+              home: HomePage(),
             );
           },
         ));
