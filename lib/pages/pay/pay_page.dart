@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:movie_theater/api_services/api_services.dart';
 import 'package:movie_theater/config/config_theme.dart';
 import 'package:movie_theater/data/dataClasses.dart';
@@ -149,8 +150,10 @@ class PayPage extends StatelessWidget {
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
                       return const Center(
-                          child:
-                              CircularProgressIndicator()); // Hoặc bất kỳ Widget nào để hiển thị trạng thái chờ
+                          child: Padding(
+                        padding: EdgeInsets.all(8.0),
+                        child: CircularProgressIndicator(),
+                      )); // Hoặc bất kỳ Widget nào để hiển thị trạng thái chờ
                     }
                     if (snapshot.hasError) {
                       print("Error: ${snapshot.error}");
@@ -188,7 +191,7 @@ class PayPage extends StatelessWidget {
               _loading.value = true;
               Bill newBill = Bill(
                 userId: GlobalUtils.currentAccount!.username,
-                time: DateTime.now().toString(),
+                date: DateTime.now().toString(),
                 voucherId: "null",
                 paymentMethodId: paymentMethodList[_currentIndex.value].id,
               );
@@ -199,14 +202,20 @@ class PayPage extends StatelessWidget {
                 await APIService.pushToFireBase("tickets/${i.id}/", i.toMap());
                 tmpBillDetail = BillDetail(productId: i.id, billId: newBill.id);
                 await APIService.pushToFireBase(
-                    "bill_details/${i.id}/", i.toMap());
+                    "bill_details/${tmpBillDetail.id}/", tmpBillDetail.toMap());
               }
               await APIService.pushToFireBase(
                   "bills/${newBill.id}/", newBill.toMap());
               _loading.value = false;
               Navigator.of(context).popUntil((route) => route.isFirst);
-              ScaffoldMessenger.of(context).showSnackBar(
-                  GlobalUtils.createSnackBar(context, "Pay Success!!"));
+              Fluttertoast.showToast(
+                  msg: "Book success!!",
+                  toastLength: Toast.LENGTH_SHORT,
+                  gravity: ToastGravity.TOP,
+                  timeInSecForIosWeb: 1,
+                  textColor: Colors.black,
+                  backgroundColor: Colors.white,
+                  fontSize: 16.0);
             },
             style: ButtonStyle(
               backgroundColor: MaterialStateProperty.all<Color>(Colors.red),
@@ -266,105 +275,159 @@ class PaymentPageAppBarBody extends StatelessWidget {
             ),
           ],
         ),
-        Column(
-          children: [
-            Row(
+        BillDetailWidget(
+            screenSize: screenSize,
+            movie: movie,
+            schedule: schedule,
+            theater: theater,
+            ticketList: ticketList),
+      ],
+    );
+  }
+}
+
+class BillDetailWidget extends StatelessWidget {
+  const BillDetailWidget({
+    super.key,
+    required this.screenSize,
+    required this.movie,
+    required this.schedule,
+    required this.theater,
+    required this.ticketList,
+  });
+
+  final Size screenSize;
+  final Movie movie;
+  final Schedule schedule;
+  final Theater theater;
+  final List<Ticket> ticketList;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        BillDetailRow(
+            screenSize: screenSize,
+            movie: movie,
+            schedule: schedule,
+            theater: theater,
+            ticketList: ticketList),
+        const SizedBox(height: 20),
+        Text(
+          "Total: ${ticketList.isEmpty ? 0 : ticketList.map((ticket) => ticket.getPrice()).reduce((a, b) => a + b)}\$",
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            fontSize: 20,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class BillDetailRow extends StatelessWidget {
+  const BillDetailRow({
+    super.key,
+    required this.screenSize,
+    required this.movie,
+    required this.schedule,
+    required this.theater,
+    required this.ticketList,
+  });
+
+  final Size screenSize;
+  final Movie movie;
+  final Schedule schedule;
+  final Theater theater;
+  final List<Ticket> ticketList;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Container(
+          width: screenSize.width / 4,
+          height: screenSize.width / 4 * 3 / 2,
+          decoration: BoxDecoration(
+            image: DecorationImage(
+                fit: BoxFit.cover,
+                image: NetworkImage(movie.getPosterFullPath())),
+            //color: Colors.amber,
+            borderRadius: const BorderRadius.all(Radius.circular(8.0)),
+          ),
+        ),
+        Flexible(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 10),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Container(
-                  width: screenSize.width / 4,
-                  height: screenSize.width / 4 * 3 / 2,
-                  decoration: BoxDecoration(
-                    image: DecorationImage(
-                        fit: BoxFit.cover,
-                        image: NetworkImage(movie.getPosterFullPath())),
-                    //color: Colors.amber,
-                    borderRadius: const BorderRadius.all(Radius.circular(8.0)),
+                // Title
+                Text(
+                  movie.title,
+                  overflow: TextOverflow.fade,
+                  softWrap: false,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18,
                   ),
                 ),
-                Flexible(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 10),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        // Title
-                        Text(
-                          movie.title,
-                          overflow: TextOverflow.fade,
-                          softWrap: false,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 18,
-                          ),
-                        ),
-                        Text(
-                          MyHelper.getDateInfo(
-                              MyHelper.fromStringToDate(schedule.date)),
-                          overflow: TextOverflow.fade,
-                          softWrap: false,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 14,
-                          ),
-                        ),
-                        Text(
-                          "${MyHelper.getTimeFromMin(schedule.time)} ~ ${MyHelper.getTimeFromMin(schedule.time + movie.runtime + 15)}",
-                          overflow: TextOverflow.fade,
-                          softWrap: false,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 14,
-                          ),
-                        ),
-                        Text(
-                          theater.name,
-                          overflow: TextOverflow.fade,
-                          softWrap: false,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 14,
-                          ),
-                        ),
-                        Text(
-                          "Cinema ${schedule.roomId.split("_")[0]}",
-                          overflow: TextOverflow.fade,
-                          softWrap: false,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 14,
-                          ),
-                        ),
-                        Text(
-                          "Seat: ${ticketList.map((ticket) => ticket.seatId.split("_").last).reduce((a, b) => "$a, $b")}",
-                          overflow: TextOverflow.fade,
-                          softWrap: false,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 14,
-                          ),
-                        ),
-                      ],
-                    ),
+                Text(
+                  MyHelper.getDateInfo(
+                      MyHelper.fromStringToDate(schedule.date)),
+                  overflow: TextOverflow.fade,
+                  softWrap: false,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 14,
                   ),
-                )
+                ),
+                Text(
+                  "${MyHelper.getTimeFromMin(schedule.time)} ~ ${MyHelper.getTimeFromMin(schedule.time + movie.runtime + 15)}",
+                  overflow: TextOverflow.fade,
+                  softWrap: false,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 14,
+                  ),
+                ),
+                Text(
+                  theater.name,
+                  overflow: TextOverflow.fade,
+                  softWrap: false,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                  ),
+                ),
+                Text(
+                  "Cinema ${schedule.roomId.split("_")[0]}",
+                  overflow: TextOverflow.fade,
+                  softWrap: false,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                  ),
+                ),
+                Text(
+                  "Seat: ${ticketList.isEmpty ? 0 : ticketList.map((ticket) => ticket.seatId.split("_").last).reduce((a, b) => "$a, $b")}",
+                  overflow: TextOverflow.fade,
+                  softWrap: false,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                  ),
+                ),
               ],
             ),
-            const SizedBox(height: 20),
-            Text(
-              "Total: ${ticketList.map((ticket) => ticket.getPrice()).reduce((a, b) => a + b)}\$",
-              style: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-                fontSize: 20,
-              ),
-            ),
-          ],
-        ),
+          ),
+        )
       ],
     );
   }

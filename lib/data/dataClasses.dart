@@ -88,10 +88,12 @@ class Account {
   String username;
   String password;
   int role_id;
+  String salt;
   Account({
     required this.username,
     required this.password,
     required this.role_id,
+    required this.salt,
   });
 
   Map<String, dynamic> toMap() {
@@ -99,6 +101,7 @@ class Account {
       'username': username,
       'password': password,
       'role_id': role_id,
+      'salt': salt,
     };
   }
 
@@ -107,6 +110,7 @@ class Account {
       username: map['username'] as String,
       password: map['password'] as String,
       role_id: map['role_id'] as int,
+      salt: map['salt'] as String,
     );
   }
 
@@ -159,24 +163,39 @@ class BillDetail {
 class Bill {
   String id;
   String userId;
-  String time;
+  String date;
   String voucherId;
   String paymentMethodId;
   Bill(
       {this.id = "",
       required this.userId,
-      required this.time,
+      required this.date,
       required this.voucherId,
       required this.paymentMethodId}) {
     id =
-        "${userId}_${time.replaceAll(" ", "_").replaceAll(RegExp(r'[.#\[\]\$]'), "?")}";
+        "${userId}_${date.replaceAll(" ", "_").replaceAll(RegExp(r'[.#\[\]\$]'), "?")}";
+  }
+
+  Future<double> getBillPrice() async {
+    List<BillDetail> billDetails = await APIService.getBillDetailListByBill(id);
+    List<Ticket> tickets = [];
+    for (var v in billDetails) {
+      Ticket? t = await APIService.getProductById(v.productId) as Ticket?;
+      tickets.add(t!);
+    }
+    double res = 0;
+    for (var t in tickets) {
+      await t._fetchPrice();
+      res += t.getPrice();
+    }
+    return res;
   }
 
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
       'id': id,
       'userId': userId,
-      'date': time,
+      'date': date,
       'voucherId': voucherId,
       'paymentMethodId': paymentMethodId,
     };
@@ -186,7 +205,7 @@ class Bill {
     return Bill(
       id: map['id'] as String,
       userId: map['userId'] as String,
-      time: map['date'] as String,
+      date: map['date'] as String,
       voucherId: map['voucherId'] as String,
       paymentMethodId: map['paymentMethodId'] as String,
     );

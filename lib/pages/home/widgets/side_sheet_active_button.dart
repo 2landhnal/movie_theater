@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:movie_theater/helpers/helper.dart';
 import 'package:movie_theater/pages/home/home_page.dart';
+import 'package:movie_theater/pages/login/login_page.dart';
+import 'package:movie_theater/pages/my%20tickets/my_ticket_page.dart';
 import 'package:movie_theater/utils/asset.dart';
 import 'package:provider/provider.dart';
 import 'package:side_sheet/side_sheet.dart';
@@ -14,8 +16,20 @@ class SideSheetActiveButton extends StatelessWidget {
     super.key,
   });
 
-  void myTicketsOnClick() {
-    print("My Tickets");
+  void myTicketsOnClick(BuildContext context) {
+    if (GlobalUtils.currentAccount == null) {
+      Navigator.pop(context);
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => LoginPage()),
+      );
+      return;
+    }
+    Navigator.pop(context);
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => MyTicketsPage()),
+    );
   }
 
   @override
@@ -128,13 +142,13 @@ class SideSheetActiveButton extends StatelessWidget {
                               vPad: 1,
                             ),
                             SideSheetButton(
-                              buttonText: "Sign In",
+                              buttonText: "Log In",
                               func: () => context
                                   .read<GlobalUtils>()
                                   .loginFunc(context),
                             ),
                             SideSheetButton(
-                                buttonText: "Sign Up",
+                                buttonText: "Register",
                                 func: () => context
                                     .read<GlobalUtils>()
                                     .signUpFunc(context)),
@@ -177,7 +191,7 @@ class IconTextBelowWidget extends StatelessWidget {
       onTap: () {
         print("clicked");
         if (func != null) {
-          func!();
+          func!(context);
         }
       },
       child: Container(

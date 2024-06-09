@@ -49,7 +49,7 @@ class SeatSelectPage extends StatelessWidget {
         [
           APIService.getRoomSeatList(schedule.roomId),
           APIService.getMovieById(schedule.movieId),
-          APIService.getTicketListBySchedulenRoomMap(schedule.id)
+          APIService.getTicketListBySchedule(schedule.id)
         ],
       ),
       builder: (context, AsyncSnapshot<List<dynamic>> snapshot) {

@@ -50,4 +50,13 @@ return ValueListenableBuilder(
                           };
                           )
 
+# Full screen
+Container(
+                constraints: const BoxConstraints(
+                  minHeight: double.infinity,
+                  minWidth: double.infinity,
+                ),
+                child: SingleChildScrollView()
+)
+
 #

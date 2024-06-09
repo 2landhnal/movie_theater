@@ -1,5 +1,6 @@
 import 'package:flutter/scheduler.dart';
 import 'package:movie_theater/data/dataClasses.dart';
+import 'package:movie_theater/helpers/helper.dart';
 import 'package:movie_theater/utils/asset.dart';
 
 class APIService {
@@ -18,6 +19,50 @@ class APIService {
       print('No data available.');
     }
     return null;
+  }
+
+  static Future<List<Bill>> getUserBills() async {
+    List<Bill> bills = [];
+    var snapshot = await GlobalUtils.dbInstance
+        .ref()
+        .child('bills')
+        .orderByChild("userId")
+        .equalTo(GlobalUtils.currentAccount!.username)
+        .get();
+    if (snapshot.exists) {
+      final data = snapshot.value;
+      if (data == null) return [];
+      for (var child in snapshot.children) {
+        bills.add(Bill.fromMap(child.value as Map));
+      }
+      print("DONE!!");
+      return bills;
+    } else {
+      print('No data available.');
+    }
+    return [];
+  }
+
+  static Future<List<BillDetail>> getBillDetailListByBill(String billId) async {
+    List<BillDetail> payMethods = [];
+    var snapshot = await GlobalUtils.dbInstance
+        .ref()
+        .child('bill_details')
+        .orderByChild("billId")
+        .equalTo(billId)
+        .get();
+    if (snapshot.exists) {
+      final data = snapshot.value;
+      if (data == null) return [];
+      for (var child in snapshot.children) {
+        payMethods.add(BillDetail.fromMap(child.value as Map));
+      }
+      print("DONE!!");
+      return payMethods;
+    } else {
+      print('No data available.');
+    }
+    return [];
   }
 
   static Future<List<PaymentMethod>> getAllPayMethod() async {
@@ -119,8 +164,7 @@ class APIService {
     return [];
   }
 
-  static Future<List<Ticket>?> getTicketListBySchedulenRoomMap(
-      String scheduleId) async {
+  static Future<List<Ticket>> getTicketListBySchedule(String scheduleId) async {
     List<Ticket> tickets = [];
     var snapshot = await GlobalUtils.dbInstance
         .ref()
@@ -130,7 +174,7 @@ class APIService {
         .get();
     if (snapshot.exists) {
       final data = snapshot.value;
-      if (data == null) return null;
+      if (data == null) return [];
       for (var child in snapshot.children) {
         tickets.add(Ticket.fromMap(child.value as Map));
       }
@@ -158,6 +202,65 @@ class APIService {
     return null;
   }
 
+  static Future<DateTime> getEndScheduleTimeByBill(String billId) async {
+    DateTime dt;
+    Schedule schedule = (await getScheduleByBill(billId)) as Schedule;
+    Movie movie = (await getMovieById(schedule.movieId)) as Movie;
+    dt = DateTime.parse(schedule.date);
+    int tmp = (schedule.time + movie.runtime + 15);
+    bool newDay = tmp >= 1440;
+    tmp %= 1440;
+    int hour = tmp ~/ 60;
+    int min = tmp % 60;
+    dt = DateTime(dt.year, dt.month, dt.day + (newDay ? 1 : 0), hour, min);
+    return dt;
+  }
+
+  static Future<List<Ticket>> getTicketListByBill(String billId) async {
+    List<BillDetail> billDetails =
+        await APIService.getBillDetailListByBill(billId);
+    List<Ticket> tickets = [];
+    for (var v in billDetails) {
+      Ticket? t = await APIService.getProductById(v.productId) as Ticket?;
+      tickets.add(t!);
+    }
+    return tickets;
+  }
+
+  static Future<Product?> getProductById(String id) async {
+    try {
+      var snapshot =
+          await GlobalUtils.dbInstance.ref().child('tickets').child(id).get();
+      final data = snapshot.value;
+      if (data == null) return null;
+      Ticket result = Ticket.fromMap(snapshot.value as Map);
+      return result;
+    } catch (e) {
+      try {
+        // Food here
+      } catch (e) {
+        print(e.toString());
+        return null;
+      }
+    }
+    return null;
+  }
+
+  static Future<Schedule?> getScheduleByBill(String billId) async {
+    List<BillDetail> billDetails =
+        await APIService.getBillDetailListByBill(billId);
+    String scheduleId = "";
+    for (var v in billDetails) {
+      print("before");
+      Ticket? t = await APIService.getProductById(v.productId) as Ticket?;
+      scheduleId = t!.scheduleId;
+      print("after");
+      break;
+    }
+    Schedule? res = await getScheduleById(scheduleId);
+    return res;
+  }
+
   static Future<Theater?> getTheaterById(String id) async {
     var snapshot =
         await GlobalUtils.dbInstance.ref().child('theaters').child(id).get();
@@ -173,13 +276,8 @@ class APIService {
   }
 
   static Future<Room?> getRoomById(String id) async {
-    var theaterId = id.split("_")[0];
-    var snapshot = await GlobalUtils.dbInstance
-        .ref()
-        .child('rooms')
-        .child(theaterId)
-        .child(id)
-        .get();
+    var snapshot =
+        await GlobalUtils.dbInstance.ref().child('rooms').child(id).get();
     if (snapshot.exists) {
       final data = snapshot.value;
       if (data == null) return null;

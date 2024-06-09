@@ -40,6 +40,11 @@ class _TheaterSelectPageState extends State<TheaterSelectPage> {
     var tmp = (await APIService.getScheduleListByDateAndMovie(
         MyHelper.getDateTimeFormat(_selectingDate),
         widget.movie.id.toString()))!;
+    tmp = tmp
+        .where((element) =>
+            MyHelper.dateTimeToMinFromSchedule(element).isAfter(DateTime.now()))
+        .toList();
+    tmp.sort((a, b) => a.time - b.time);
     //print(MyHelper.getDateTimeFormat(_selectingDate));
     setState(() {
       currentScheduleList = tmp;
@@ -59,10 +64,16 @@ class _TheaterSelectPageState extends State<TheaterSelectPage> {
   }
 
   @override
-  Widget build(BuildContext context) {
+  void initState() {
+    // TODO: implement initState
     for (int i = 0; i < 7; i++) {
       dateList.add(_selectingDate.add(Duration(days: i)));
     }
+    setSelectingDate(0);
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:movie_theater/api_services/api_services.dart';
 import 'package:movie_theater/helpers/helper.dart';
 import 'package:movie_theater/pages/home/widgets/appbar_back_button.dart';
@@ -20,16 +21,38 @@ class LoginPage extends StatelessWidget {
     }
     var result = await APIService.getAccountByAccount(usernameTxtCtrl.text);
     if (result == null) {
+      Fluttertoast.showToast(
+          msg: "Username or password invalid",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.TOP,
+          timeInSecForIosWeb: 1,
+          textColor: Colors.black,
+          backgroundColor: Colors.white,
+          fontSize: 16.0);
       return;
     }
-    if (MyHelper.hash(passwordTxtCtrl.text) != result.password) {
+    if (MyHelper.hash(passwordTxtCtrl.text + result.salt) != result.password) {
+      Fluttertoast.showToast(
+          msg: "Username or password invalid",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.TOP,
+          timeInSecForIosWeb: 1,
+          textColor: Colors.black,
+          backgroundColor: Colors.white,
+          fontSize: 16.0);
       return;
     }
     GlobalUtils.sharedPrefs.setString("username", result.username);
     context.read<GlobalUtils>().loginAccount(result, context);
     Navigator.pop(context);
-    // ScaffoldMessenger.of(context)
-    //     .showSnackBar(GlobalUtils.createSnackBar(context, "Success!!"));
+    Fluttertoast.showToast(
+        msg: "Login success!!",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.TOP,
+        timeInSecForIosWeb: 1,
+        textColor: Colors.black,
+        backgroundColor: Colors.white,
+        fontSize: 16.0);
   }
 
   @override
@@ -184,7 +207,7 @@ class SignUpButton extends StatelessWidget {
               ),
               borderRadius: BorderRadius.circular(0))),
         ),
-        child: const Text("Sign up"),
+        child: const Text("Register"),
       ),
     );
   }

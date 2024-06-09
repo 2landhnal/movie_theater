@@ -17,6 +17,7 @@ class HomePageMovieList extends StatefulWidget {
 
 class _HomePageMovieListState extends State<HomePageMovieList> {
   late Future parentFutureFunc;
+  bool streaming = true;
 
   @override
   void initState() {
@@ -39,27 +40,35 @@ class _HomePageMovieListState extends State<HomePageMovieList> {
             GestureDetector(
               onTap: () {
                 setState(() {
+                  streaming = true;
                   parentFutureFunc = context
                       .read<GlobalUtils>()
                       .getMovieByStreamingState("Streaming");
                 });
               },
-              child: const Text(
+              child: Text(
                 "Streaming",
-                style: TextStyle(color: Colors.white),
+                style: TextStyle(
+                    color: streaming ? Colors.white : Colors.white54,
+                    fontWeight:
+                        !streaming ? FontWeight.normal : FontWeight.bold),
               ),
             ),
             GestureDetector(
               onTap: () {
                 setState(() {
+                  streaming = false;
                   parentFutureFunc = context
                       .read<GlobalUtils>()
                       .getMovieByStreamingState("Upcoming");
                 });
               },
-              child: const Text(
+              child: Text(
                 "Upcoming",
-                style: TextStyle(color: Colors.white),
+                style: TextStyle(
+                    color: !streaming ? Colors.white : Colors.white54,
+                    fontWeight:
+                        streaming ? FontWeight.normal : FontWeight.bold),
               ),
             ),
           ],

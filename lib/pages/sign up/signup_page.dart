@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:movie_theater/api_services/api_services.dart';
 import 'package:movie_theater/data/dataClasses.dart';
@@ -31,26 +32,39 @@ class signupPageState extends State<SignUpPage> {
 
   void signup() async {
     print("Sign UPPPPPPPPPP");
-    var checkAccount =
-        await APIService.getAccountByAccount(usernameTxtCtrl.text);
-    if (checkAccount != null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-          GlobalUtils.createSnackBar(context, "Username already exist!"));
-      return;
-    }
     if (usernameTxtCtrl.text == "" ||
         passwordTxtCtrl.text == "" ||
         nameTxtCtrl.text == "" ||
         emailTxtCtrl.text == "") {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(GlobalUtils.createSnackBar(context, "Not valid!"));
+      Fluttertoast.showToast(
+          msg: "Please fill the required field!",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.TOP,
+          timeInSecForIosWeb: 1,
+          textColor: Colors.black,
+          backgroundColor: Colors.white,
+          fontSize: 16.0);
       return;
     }
+    var checkAccount =
+        await APIService.getAccountByAccount(usernameTxtCtrl.text);
+    if (checkAccount != null) {
+      Fluttertoast.showToast(
+          msg: "Username already exist!",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.TOP,
+          timeInSecForIosWeb: 1,
+          textColor: Colors.black,
+          backgroundColor: Colors.white,
+          fontSize: 16.0);
+      return;
+    }
+    String salt = MyHelper.getSalt();
     Account account = Account(
-      username: usernameTxtCtrl.text,
-      password: MyHelper.hash(passwordTxtCtrl.text),
-      role_id: 3,
-    );
+        username: usernameTxtCtrl.text,
+        password: MyHelper.hash(passwordTxtCtrl.text + salt),
+        role_id: 3,
+        salt: salt);
     Customer customer = Customer(
       username: usernameTxtCtrl.text,
       name: nameTxtCtrl.text,
@@ -64,8 +78,14 @@ class signupPageState extends State<SignUpPage> {
     await APIService.pushToFireBase(
         "customers/${usernameTxtCtrl.text}/", customer.toMap());
     context.read<GlobalUtils>().loginFunc(context);
-    ScaffoldMessenger.of(context)
-        .showSnackBar(GlobalUtils.createSnackBar(context, "Success!!"));
+    Fluttertoast.showToast(
+        msg: "Register success!",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.TOP,
+        timeInSecForIosWeb: 1,
+        textColor: Colors.black,
+        backgroundColor: Colors.white,
+        fontSize: 16.0);
   }
 
   Future<void> _selectDate(BuildContext context) async {
@@ -84,6 +104,7 @@ class signupPageState extends State<SignUpPage> {
 
   @override
   Widget build(BuildContext context) {
+    print(MyHelper.getRandomString(8));
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
@@ -232,7 +253,7 @@ class PasswordField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return TextFormField(
-        validator: MyHelper.validateNull,
+        validator: MyHelper.passwordValidator,
         obscureText: true,
         enableSuggestions: false,
         autocorrect: false,
@@ -323,7 +344,7 @@ class _SignUpButtonState extends State<SignUpButton> {
                 color: Colors.white,
                 strokeWidth: 3,
               )
-            : const Text("Sign up"),
+            : const Text("Register"),
       ),
     );
   }

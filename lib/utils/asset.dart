@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:movie_theater/api_services/api_services.dart';
 import 'package:movie_theater/data/dataClasses.dart';
@@ -31,25 +32,25 @@ class GlobalUtils extends ChangeNotifier {
     );
   }
 
-  static SnackBar createSnackBar(BuildContext context, String message) {
-    return SnackBar(
-      content: Center(
-        child: Text(
-          message,
-          style: const TextStyle(color: Colors.black),
-        ),
-      ),
-      behavior: SnackBarBehavior.floating,
-      backgroundColor: Colors.white,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(24),
-      ),
-      margin: EdgeInsets.only(
-          bottom: MediaQuery.of(context).size.height - 100,
-          right: 20,
-          left: 20),
-    );
-  }
+  // static SnackBar createSnackBar(BuildContext context, String message) {
+  //   return SnackBar(
+  //     content: Center(
+  //       child: Text(
+  //         message,
+  //         style: const TextStyle(color: Colors.black),
+  //       ),
+  //     ),
+  //     behavior: SnackBarBehavior.floating,
+  //     backgroundColor: Colors.white,
+  //     shape: RoundedRectangleBorder(
+  //       borderRadius: BorderRadius.circular(24),
+  //     ),
+  //     margin: EdgeInsets.only(
+  //         bottom: MediaQuery.of(context).size.height - 100,
+  //         right: 20,
+  //         left: 20),
+  //   );
+  // }
 
   Future<List<Movie>> getMovieByStreamingState(String state) async {
     List<Movie> movies = await APIService.getAllMovies() as List<Movie>;
@@ -59,6 +60,7 @@ class GlobalUtils extends ChangeNotifier {
   }
 
   void signUpFunc(BuildContext context) {
+    Navigator.pop(context);
     Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => const SignUpPage()),
@@ -70,13 +72,21 @@ class GlobalUtils extends ChangeNotifier {
     currentAccount = null;
     Navigator.pop(context);
     notifyListeners();
+    Fluttertoast.showToast(
+        msg: "Log out succeess!",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.TOP,
+        timeInSecForIosWeb: 1,
+        textColor: Colors.black,
+        backgroundColor: Colors.white,
+        fontSize: 16.0);
   }
 
   static Future checkState() async {
     FirebaseAuth.instance.authStateChanges().listen((User? user) {
       if (user == null) {
         print('User is currently signed out!');
-        _signIn();
+        //_signIn();
       } else {
         print('User is signed in!');
         GlobalUtils.dbInstance = FirebaseDatabase.instance;
@@ -88,11 +98,11 @@ class GlobalUtils extends ChangeNotifier {
     var email = "nguyenhbyg9@gmail.com";
     var password = "19012003@";
     try {
-      UserCredential userCredential =
-          await FirebaseAuth.instance.signInWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
+      // UserCredential userCredential =
+      //     await FirebaseAuth.instance.signInWithEmailAndPassword(
+      //   email: email,
+      //   password: password,
+      // );
       GlobalUtils.dbInstance = FirebaseDatabase.instance;
     } on FirebaseAuthException catch (e) {
       if (e.code == 'user-not-found') {

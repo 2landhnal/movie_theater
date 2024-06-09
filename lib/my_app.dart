@@ -1,10 +1,12 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
+import 'package:movie_theater/helpers/helper.dart';
 import 'package:movie_theater/pages/home/home_page.dart';
 import 'package:movie_theater/pages/home/home_page_body.dart';
 import 'package:movie_theater/pages/login/login_page.dart';
 import 'package:movie_theater/pages/movie%20detail/movie_detail_page.dart';
+import 'package:movie_theater/pages/my%20tickets/my_ticket_page.dart';
 import 'package:movie_theater/pages/pay/pay_page.dart';
 import 'package:movie_theater/pages/seat%20select%20page/seat_select_page.dart';
 import 'package:movie_theater/pages/test/test_firebase.dart';
@@ -44,7 +46,7 @@ class _MainAppState extends State<MainApp> {
               print("Error: ${snapshot.error}");
               return Text('Error: ${snapshot.error}'); // Xử lý lỗi
             }
-            return const MaterialApp(
+            return MaterialApp(
               debugShowCheckedModeBanner: false,
               home: HomePage(),
             );
