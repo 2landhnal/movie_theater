@@ -8,16 +8,16 @@ import 'package:movie_theater/data/dataClasses.dart';
 import 'package:movie_theater/pages/login/login_page.dart';
 import 'package:movie_theater/pages/movie%20detail/movie_detail_page.dart';
 import 'package:movie_theater/pages/sign%20up/signup_page.dart';
+import 'package:movie_theater/utils/notify.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class GlobalUtils extends ChangeNotifier {
-  static Account? currentAccount;
-  static late FirebaseDatabase dbInstance;
-  static late SharedPreferences sharedPrefs;
+  static User? currentAccount;
+  static Customer? currentCustomer;
   static MaterialColor purpleTextColor = Colors.deepPurple;
   static late List<Movie> currentMovieList;
   static DateFormat globalDateFormat = DateFormat('yyyy-MM-dd');
-  void loginFunc(BuildContext context) {
+  void naviToLogin(BuildContext context) {
     Navigator.pop(context);
     Navigator.push(
       context,
@@ -67,72 +67,32 @@ class GlobalUtils extends ChangeNotifier {
     );
   }
 
-  void logOutFunc(BuildContext context) {
-    sharedPrefs.remove("username");
+  Future<void> logOutFunc(BuildContext context) async {
+    await FirebaseAuth.instance.signOut();
     currentAccount = null;
+    currentCustomer = null;
     Navigator.pop(context);
     notifyListeners();
-    Fluttertoast.showToast(
-        msg: "Log out succeess!",
-        toastLength: Toast.LENGTH_SHORT,
-        gravity: ToastGravity.TOP,
-        timeInSecForIosWeb: 1,
-        textColor: Colors.black,
-        backgroundColor: Colors.white,
-        fontSize: 16.0);
+    MyNotifier.ShowToast("Log out succeess!");
   }
 
   static Future checkState() async {
-    FirebaseAuth.instance.authStateChanges().listen((User? user) {
+    FirebaseAuth.instance.userChanges().listen((User? user) {
       if (user == null) {
         print('User is currently signed out!');
-        //_signIn();
       } else {
         print('User is signed in!');
-        GlobalUtils.dbInstance = FirebaseDatabase.instance;
       }
     });
   }
 
-  static Future _signIn() async {
-    var email = "nguyenhbyg9@gmail.com";
-    var password = "19012003@";
-    try {
-      // UserCredential userCredential =
-      //     await FirebaseAuth.instance.signInWithEmailAndPassword(
-      //   email: email,
-      //   password: password,
-      // );
-      GlobalUtils.dbInstance = FirebaseDatabase.instance;
-    } on FirebaseAuthException catch (e) {
-      if (e.code == 'user-not-found') {
-        print('No user found for that email.');
-      } else if (e.code == 'wrong-password') {
-        print('Wrong password provided for that user.');
-      }
-    }
-  }
-
   Future<void> initLoginCheck() async {
     await checkState();
-    sharedPrefs = await SharedPreferences.getInstance();
-    notifyListeners();
-    String? username = sharedPrefs.getString('username');
-    if (username != null) {
-      Account? acc = await APIService.getAccountByAccount(username);
-      if (acc != null) {
-        currentAccount = acc;
-        notifyListeners();
-      } else {
-        print("ACC NULL");
-      }
-    } else {
-      print("USERNAME NULL");
-    }
   }
 
-  void loginAccount(Account acc, BuildContext context) {
+  void loginAccount(User? acc, Customer? cus, BuildContext context) {
     currentAccount = acc;
+    currentCustomer = cus;
     notifyListeners();
     // ScaffoldMessenger.of(context)
     //     .showSnackBar(GlobalUtils.createSnackBar(context, "Success!!"));

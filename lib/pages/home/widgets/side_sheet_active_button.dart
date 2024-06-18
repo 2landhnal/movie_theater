@@ -62,8 +62,8 @@ class SideSheetActiveButton extends StatelessWidget {
                         ),
                         const SizedBox(height: 10),
                         Text(
-                          GlobalUtils.currentAccount != null
-                              ? GlobalUtils.currentAccount!.username
+                          GlobalUtils.currentCustomer != null
+                              ? GlobalUtils.currentCustomer!.name
                               : "username",
                           style: const TextStyle(color: Colors.white),
                         ),
@@ -145,7 +145,7 @@ class SideSheetActiveButton extends StatelessWidget {
                               buttonText: "Log In",
                               func: () => context
                                   .read<GlobalUtils>()
-                                  .loginFunc(context),
+                                  .naviToLogin(context),
                             ),
                             SideSheetButton(
                                 buttonText: "Register",

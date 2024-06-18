@@ -1,10 +1,13 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:movie_theater/api_services/api_services.dart';
+import 'package:movie_theater/data/dataClasses.dart';
 import 'package:movie_theater/helpers/helper.dart';
 import 'package:movie_theater/pages/home/widgets/appbar_back_button.dart';
 import 'package:movie_theater/utils/asset.dart';
+import 'package:movie_theater/utils/notify.dart';
 import 'package:provider/provider.dart';
 
 class LoginPage extends StatelessWidget {
@@ -19,40 +22,32 @@ class LoginPage extends StatelessWidget {
     if (!_formKey.currentState!.validate()) {
       return;
     }
-    var result = await APIService.getAccountByAccount(usernameTxtCtrl.text);
-    if (result == null) {
-      Fluttertoast.showToast(
-          msg: "Username or password invalid",
-          toastLength: Toast.LENGTH_SHORT,
-          gravity: ToastGravity.TOP,
-          timeInSecForIosWeb: 1,
-          textColor: Colors.black,
-          backgroundColor: Colors.white,
-          fontSize: 16.0);
-      return;
+    try {
+      //FirebaseAuth.instance.setPersistence(Persistence.SESSION);
+      await FirebaseAuth.instance.signInWithEmailAndPassword(
+          email: usernameTxtCtrl.text, password: passwordTxtCtrl.text);
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'user-not-found') {
+        MyNotifier.ShowToast("No user found for that email.");
+        return;
+      } else if (e.code == 'wrong-password') {
+        MyNotifier.ShowToast('Wrong password provided for that user.');
+        return;
+      } else {
+        MyNotifier.ShowToast(e.code);
+        return;
+      }
     }
-    if (MyHelper.hash(passwordTxtCtrl.text + result.salt) != result.password) {
-      Fluttertoast.showToast(
-          msg: "Username or password invalid",
-          toastLength: Toast.LENGTH_SHORT,
-          gravity: ToastGravity.TOP,
-          timeInSecForIosWeb: 1,
-          textColor: Colors.black,
-          backgroundColor: Colors.white,
-          fontSize: 16.0);
-      return;
-    }
-    GlobalUtils.sharedPrefs.setString("username", result.username);
-    context.read<GlobalUtils>().loginAccount(result, context);
+    User? currentUser = FirebaseAuth.instance.currentUser;
+    // if (!currentUser!.emailVerified) {
+    //   await FirebaseAuth.instance.signOut();
+    //   MyNotifier.ShowToast('Email need to be verified!');
+    //   return;
+    // }
+    Customer? cus = await APIService.getCustomerByAccount(currentUser!.uid);
+    context.read<GlobalUtils>().loginAccount(currentUser, cus, context);
     Navigator.pop(context);
-    Fluttertoast.showToast(
-        msg: "Login success!!",
-        toastLength: Toast.LENGTH_SHORT,
-        gravity: ToastGravity.TOP,
-        timeInSecForIosWeb: 1,
-        textColor: Colors.black,
-        backgroundColor: Colors.white,
-        fontSize: 16.0);
+    MyNotifier.ShowToast("Login success!!");
   }
 
   @override
@@ -61,7 +56,20 @@ class LoginPage extends StatelessWidget {
       appBar: AppBar(
         automaticallyImplyLeading: false,
         backgroundColor: Colors.black,
-        title: const AppBarBackButton(),
+        title: const Row(
+          children: [
+            AppBarBackButton(),
+            Text(
+              "Log in",
+              overflow: TextOverflow.fade,
+              softWrap: false,
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
       ),
       body: Container(
         padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -125,12 +133,12 @@ class UsernameField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return TextFormField(
-        validator: MyHelper.validateNull,
+        validator: MyHelper.validateEmail,
         style: const TextStyle(color: Colors.white),
         controller: ctrl,
         decoration: context
             .read<GlobalUtils>()
-            .inputDecorationBlack(labelText: "Username"));
+            .inputDecorationBlack(labelText: "Email"));
   }
 }
 

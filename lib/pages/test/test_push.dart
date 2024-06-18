@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:movie_theater/utils/asset.dart';
 
@@ -13,7 +15,7 @@ class TestPush extends StatelessWidget {
         child: TextButton(
           onPressed: () async {
             Obj newObj = Obj(id: 0, content: "test");
-            await GlobalUtils.dbInstance
+            await FirebaseDatabase.instance
                 .ref("test/${newObj.id}/")
                 .set(newObj.toMap())
                 .then((_) {

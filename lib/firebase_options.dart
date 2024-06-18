@@ -46,7 +46,8 @@ class DefaultFirebaseOptions {
     messagingSenderId: '26913522366',
     projectId: 'winform-dc210',
     authDomain: 'winform-dc210.firebaseapp.com',
-    databaseURL: 'https://winform-dc210-default-rtdb.asia-southeast1.firebasedatabase.app',
+    databaseURL:
+        'https://winform-dc210-default-rtdb.asia-southeast1.firebasedatabase.app',
     storageBucket: 'winform-dc210.appspot.com',
     measurementId: 'G-DV5ESE1SNV',
   );
@@ -56,7 +57,8 @@ class DefaultFirebaseOptions {
     appId: '1:26913522366:android:8f0e99cf3e09256892d4ef',
     messagingSenderId: '26913522366',
     projectId: 'winform-dc210',
-    databaseURL: 'https://winform-dc210-default-rtdb.asia-southeast1.firebasedatabase.app',
+    databaseURL:
+        'https://winform-dc210-default-rtdb.asia-southeast1.firebasedatabase.app',
     storageBucket: 'winform-dc210.appspot.com',
   );
 
@@ -65,7 +67,8 @@ class DefaultFirebaseOptions {
     appId: '1:26913522366:ios:ea5ae042f70cd3c592d4ef',
     messagingSenderId: '26913522366',
     projectId: 'winform-dc210',
-    databaseURL: 'https://winform-dc210-default-rtdb.asia-southeast1.firebasedatabase.app',
+    databaseURL:
+        'https://winform-dc210-default-rtdb.asia-southeast1.firebasedatabase.app',
     storageBucket: 'winform-dc210.appspot.com',
     iosBundleId: 'com.example.movieTheater',
   );
@@ -75,7 +78,8 @@ class DefaultFirebaseOptions {
     appId: '1:26913522366:ios:ea5ae042f70cd3c592d4ef',
     messagingSenderId: '26913522366',
     projectId: 'winform-dc210',
-    databaseURL: 'https://winform-dc210-default-rtdb.asia-southeast1.firebasedatabase.app',
+    databaseURL:
+        'https://winform-dc210-default-rtdb.asia-southeast1.firebasedatabase.app',
     storageBucket: 'winform-dc210.appspot.com',
     iosBundleId: 'com.example.movieTheater',
   );
@@ -86,9 +90,9 @@ class DefaultFirebaseOptions {
     messagingSenderId: '26913522366',
     projectId: 'winform-dc210',
     authDomain: 'winform-dc210.firebaseapp.com',
-    databaseURL: 'https://winform-dc210-default-rtdb.asia-southeast1.firebasedatabase.app',
+    databaseURL:
+        'https://winform-dc210-default-rtdb.asia-southeast1.firebasedatabase.app',
     storageBucket: 'winform-dc210.appspot.com',
     measurementId: 'G-496SP7SEFS',
   );
-
 }

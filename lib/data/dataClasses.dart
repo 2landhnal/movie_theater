@@ -5,14 +5,14 @@ import 'package:flutter/foundation.dart';
 import 'package:movie_theater/api_services/api_services.dart';
 
 class SystemUser {
-  String username;
+  String uid;
   String name;
   String email;
   String birthday;
   String gender;
   String join_at;
   SystemUser({
-    required this.username,
+    required this.uid,
     required this.name,
     required this.email,
     required this.birthday,
@@ -22,7 +22,7 @@ class SystemUser {
 
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
-      'username': username,
+      'uid': uid,
       'name': name,
       'email': email,
       'birthday': birthday,
@@ -33,7 +33,7 @@ class SystemUser {
 
   factory SystemUser.fromMap(Map<dynamic, dynamic> map) {
     return SystemUser(
-      username: map['username'] as String,
+      uid: map['uid'] as String,
       name: map['name'] as String,
       email: map['email'] as String,
       birthday: map['birthday'] as String,
@@ -50,7 +50,7 @@ class SystemUser {
 
 class Customer extends SystemUser {
   Customer({
-    required super.username,
+    required super.uid,
     required super.name,
     required super.email,
     required super.birthday,
@@ -60,7 +60,7 @@ class Customer extends SystemUser {
   @override
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
-      'username': username,
+      'uid': uid,
       'name': name,
       'email': email,
       'birthday': birthday,
@@ -71,7 +71,7 @@ class Customer extends SystemUser {
 
   factory Customer.fromMap(Map<dynamic, dynamic> map) {
     return Customer(
-      username: map['username'] as String,
+      uid: map['uid'] as String,
       name: map['name'] as String,
       email: map['email'] as String,
       birthday: map['birthday'] as String,
@@ -85,11 +85,13 @@ class Customer extends SystemUser {
 }
 
 class Account {
+  String uid;
   String username;
   String password;
   int role_id;
   String salt;
   Account({
+    required this.uid,
     required this.username,
     required this.password,
     required this.role_id,
@@ -98,6 +100,7 @@ class Account {
 
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
+      'uid': uid,
       'username': username,
       'password': password,
       'role_id': role_id,
@@ -107,6 +110,7 @@ class Account {
 
   factory Account.fromMap(Map<dynamic, dynamic> map) {
     return Account(
+      uid: map['uid'] as String,
       username: map['username'] as String,
       password: map['password'] as String,
       role_id: map['role_id'] as int,

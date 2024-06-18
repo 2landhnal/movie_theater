@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -5,11 +7,13 @@ import 'package:flutter/widgets.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:movie_theater/api_services/api_services.dart';
+import 'package:movie_theater/config/config_theme.dart';
 import 'package:movie_theater/data/dataClasses.dart';
 import 'package:movie_theater/helpers/helper.dart';
 import 'package:movie_theater/my_app.dart';
 import 'package:movie_theater/pages/home/widgets/appbar_back_button.dart';
 import 'package:movie_theater/utils/asset.dart';
+import 'package:movie_theater/utils/notify.dart';
 import 'package:provider/provider.dart';
 
 class SignUpPage extends StatefulWidget {
@@ -25,48 +29,62 @@ class signupPageState extends State<SignUpPage> {
   bool datePicked = false;
   static List<String> genderList = <String>['Male', 'Female', 'Other'];
   String _dropDownValue = "Male";
-  TextEditingController usernameTxtCtrl = TextEditingController(),
-      passwordTxtCtrl = TextEditingController(),
+  TextEditingController passwordTxtCtrl = TextEditingController(),
       nameTxtCtrl = TextEditingController(),
       emailTxtCtrl = TextEditingController();
 
-  void signup() async {
-    print("Sign UPPPPPPPPPP");
-    if (usernameTxtCtrl.text == "" ||
-        passwordTxtCtrl.text == "" ||
+  void sendVerify() {
+    if (passwordTxtCtrl.text == "" ||
         nameTxtCtrl.text == "" ||
         emailTxtCtrl.text == "") {
-      Fluttertoast.showToast(
-          msg: "Please fill the required field!",
-          toastLength: Toast.LENGTH_SHORT,
-          gravity: ToastGravity.TOP,
-          timeInSecForIosWeb: 1,
-          textColor: Colors.black,
-          backgroundColor: Colors.white,
-          fontSize: 16.0);
+      MyNotifier.ShowToast("Please fill the required field!");
       return;
     }
-    var checkAccount =
-        await APIService.getAccountByAccount(usernameTxtCtrl.text);
-    if (checkAccount != null) {
-      Fluttertoast.showToast(
-          msg: "Username already exist!",
-          toastLength: Toast.LENGTH_SHORT,
-          gravity: ToastGravity.TOP,
-          timeInSecForIosWeb: 1,
-          textColor: Colors.black,
-          backgroundColor: Colors.white,
-          fontSize: 16.0);
+    FirebaseAuth.instance
+        .sendSignInLinkToEmail(
+            email: emailTxtCtrl.text, actionCodeSettings: VerifyConfig.acs)
+        .catchError(
+            (onError) => print('Error sending email verification $onError'))
+        .then((value) => print('Successfully sent email verification'));
+  }
+
+  void signup() async {
+    UserCredential userCredential;
+    print("Sign UPPPPPPPPPP");
+    if (passwordTxtCtrl.text == "" ||
+        nameTxtCtrl.text == "" ||
+        emailTxtCtrl.text == "") {
+      MyNotifier.ShowToast("Please fill the required field!");
+      return;
+    }
+    try {
+      userCredential = await FirebaseAuth.instance
+          .createUserWithEmailAndPassword(
+              email: emailTxtCtrl.text, password: passwordTxtCtrl.text);
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'weak-password') {
+        MyNotifier.ShowToast("The password provided is too weak!");
+        return;
+      } else if (e.code == 'email-already-in-use') {
+        MyNotifier.ShowToast("Username already exist!");
+        return;
+      } else {
+        MyNotifier.ShowToast(e.code);
+        return;
+      }
+    } catch (e) {
+      print(e);
       return;
     }
     String salt = MyHelper.getSalt();
     Account account = Account(
-        username: usernameTxtCtrl.text,
+        uid: userCredential.user!.uid,
+        username: emailTxtCtrl.text,
         password: MyHelper.hash(passwordTxtCtrl.text + salt),
         role_id: 3,
         salt: salt);
     Customer customer = Customer(
-      username: usernameTxtCtrl.text,
+      uid: userCredential.user!.uid,
       name: nameTxtCtrl.text,
       email: emailTxtCtrl.text,
       birthday: formatter.format(selectedDate).toString(),
@@ -74,18 +92,11 @@ class signupPageState extends State<SignUpPage> {
       join_at: DateFormat('yyyy-MM-dd').format(DateTime.now()),
     );
     await APIService.pushToFireBase(
-        "accounts/${usernameTxtCtrl.text}/", account.toMap());
+        "accounts/${account.uid}/", account.toMap());
     await APIService.pushToFireBase(
-        "customers/${usernameTxtCtrl.text}/", customer.toMap());
-    context.read<GlobalUtils>().loginFunc(context);
-    Fluttertoast.showToast(
-        msg: "Register success!",
-        toastLength: Toast.LENGTH_SHORT,
-        gravity: ToastGravity.TOP,
-        timeInSecForIosWeb: 1,
-        textColor: Colors.black,
-        backgroundColor: Colors.white,
-        fontSize: 16.0);
+        "customers/${customer.uid}/", customer.toMap());
+    context.read<GlobalUtils>().naviToLogin(context);
+    MyNotifier.ShowToast("Register success!");
   }
 
   Future<void> _selectDate(BuildContext context) async {
@@ -109,7 +120,20 @@ class signupPageState extends State<SignUpPage> {
       appBar: AppBar(
         automaticallyImplyLeading: false,
         backgroundColor: Colors.black,
-        title: const AppBarBackButton(),
+        title: const Row(
+          children: [
+            AppBarBackButton(),
+            Text(
+              "Register",
+              overflow: TextOverflow.fade,
+              softWrap: false,
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
       ),
       body: Container(
         padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -125,13 +149,13 @@ class signupPageState extends State<SignUpPage> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        UsernameField(ctrl: usernameTxtCtrl),
+                        //UsernameField(ctrl: usernameTxtCtrl),
+                        //const SizedBox(height: 10),
+                        EmailField(ctrl: emailTxtCtrl),
                         const SizedBox(height: 10),
                         PasswordField(ctrl: passwordTxtCtrl),
                         const SizedBox(height: 10),
                         NameField(ctrl: nameTxtCtrl),
-                        const SizedBox(height: 10),
-                        EmailField(ctrl: emailTxtCtrl),
                         const SizedBox(height: 10),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,

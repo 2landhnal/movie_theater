@@ -190,7 +190,7 @@ class PayPage extends StatelessWidget {
             onPressed: () async {
               _loading.value = true;
               Bill newBill = Bill(
-                userId: GlobalUtils.currentAccount!.username,
+                userId: GlobalUtils.currentAccount!.uid!,
                 date: DateTime.now().toString(),
                 voucherId: "null",
                 paymentMethodId: paymentMethodList[_currentIndex.value].id,

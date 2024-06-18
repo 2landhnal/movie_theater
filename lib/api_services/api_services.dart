@@ -1,3 +1,4 @@
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:movie_theater/data/dataClasses.dart';
 import 'package:movie_theater/helpers/helper.dart';
@@ -6,7 +7,7 @@ import 'package:movie_theater/utils/asset.dart';
 class APIService {
   static Future<List<Movie>?> getAllMovies() async {
     List<Movie> movies = [];
-    var snapshot = await GlobalUtils.dbInstance.ref().child('movies').get();
+    var snapshot = await FirebaseDatabase.instance.ref().child('movies').get();
     if (snapshot.exists) {
       final data = snapshot.value;
       if (data == null) return null;
@@ -23,11 +24,11 @@ class APIService {
 
   static Future<List<Bill>> getUserBills() async {
     List<Bill> bills = [];
-    var snapshot = await GlobalUtils.dbInstance
+    var snapshot = await FirebaseDatabase.instance
         .ref()
         .child('bills')
         .orderByChild("userId")
-        .equalTo(GlobalUtils.currentAccount!.username)
+        .equalTo(GlobalUtils.currentAccount!.uid)
         .get();
     if (snapshot.exists) {
       final data = snapshot.value;
@@ -45,7 +46,7 @@ class APIService {
 
   static Future<List<BillDetail>> getBillDetailListByBill(String billId) async {
     List<BillDetail> payMethods = [];
-    var snapshot = await GlobalUtils.dbInstance
+    var snapshot = await FirebaseDatabase.instance
         .ref()
         .child('bill_details')
         .orderByChild("billId")
@@ -68,7 +69,7 @@ class APIService {
   static Future<List<PaymentMethod>> getAllPayMethod() async {
     List<PaymentMethod> payMethods = [];
     var snapshot =
-        await GlobalUtils.dbInstance.ref().child('payment_methods').get();
+        await FirebaseDatabase.instance.ref().child('payment_methods').get();
     if (snapshot.exists) {
       final data = snapshot.value;
       if (data == null) return [];
@@ -85,7 +86,7 @@ class APIService {
 
   static Future<List<Movie_Genre>?> getMovieGenreList(int movieId) async {
     List<Movie_Genre> movieGenreList = [];
-    var snapshot = await GlobalUtils.dbInstance
+    var snapshot = await FirebaseDatabase.instance
         .ref()
         .child('movie_genre')
         .child(movieId.toString())
@@ -106,7 +107,7 @@ class APIService {
   static Future<List<TicketPriceSchedule>> getTicketPriceBySchedule(
       String id) async {
     List<TicketPriceSchedule> ticketPriceList = [];
-    var snapshot = await GlobalUtils.dbInstance
+    var snapshot = await FirebaseDatabase.instance
         .ref()
         .child('ticket_price_schedule')
         .child(id)
@@ -126,7 +127,7 @@ class APIService {
 
   static Future<List<Credit>?> getMovieCreditList(int movieId) async {
     List<Credit> movieCreditList = [];
-    var snapshot = await GlobalUtils.dbInstance
+    var snapshot = await FirebaseDatabase.instance
         .ref()
         .child('credits')
         .child(movieId.toString())
@@ -146,7 +147,7 @@ class APIService {
 
   static Future<List<Room_Seat>?> getRoomSeatList(String roomId) async {
     List<Room_Seat> roomSeat = [];
-    var snapshot = await GlobalUtils.dbInstance
+    var snapshot = await FirebaseDatabase.instance
         .ref()
         .child('room_seat')
         .child(roomId)
@@ -166,7 +167,7 @@ class APIService {
 
   static Future<List<Ticket>> getTicketListBySchedule(String scheduleId) async {
     List<Ticket> tickets = [];
-    var snapshot = await GlobalUtils.dbInstance
+    var snapshot = await FirebaseDatabase.instance
         .ref()
         .child('tickets')
         .orderByChild('scheduleId')
@@ -186,7 +187,7 @@ class APIService {
   }
 
   static Future<Participant?> getParticipantByID(int id) async {
-    var snapshot = await GlobalUtils.dbInstance
+    var snapshot = await FirebaseDatabase.instance
         .ref()
         .child('participants')
         .child(id.toString())
@@ -229,8 +230,11 @@ class APIService {
 
   static Future<Product?> getProductById(String id) async {
     try {
-      var snapshot =
-          await GlobalUtils.dbInstance.ref().child('tickets').child(id).get();
+      var snapshot = await FirebaseDatabase.instance
+          .ref()
+          .child('tickets')
+          .child(id)
+          .get();
       final data = snapshot.value;
       if (data == null) return null;
       Ticket result = Ticket.fromMap(snapshot.value as Map);
@@ -263,7 +267,7 @@ class APIService {
 
   static Future<Theater?> getTheaterById(String id) async {
     var snapshot =
-        await GlobalUtils.dbInstance.ref().child('theaters').child(id).get();
+        await FirebaseDatabase.instance.ref().child('theaters').child(id).get();
     if (snapshot.exists) {
       final data = snapshot.value;
       if (data == null) return null;
@@ -277,7 +281,7 @@ class APIService {
 
   static Future<Room?> getRoomById(String id) async {
     var snapshot =
-        await GlobalUtils.dbInstance.ref().child('rooms').child(id).get();
+        await FirebaseDatabase.instance.ref().child('rooms').child(id).get();
     if (snapshot.exists) {
       final data = snapshot.value;
       if (data == null) return null;
@@ -290,7 +294,7 @@ class APIService {
   }
 
   static Future<Genre?> getGenreByID(int id) async {
-    var snapshot = await GlobalUtils.dbInstance
+    var snapshot = await FirebaseDatabase.instance
         .ref()
         .child('genres')
         .child(id.toString())
@@ -307,7 +311,7 @@ class APIService {
   }
 
   static Future<Account?> getAccountByAccount(String account) async {
-    var snapshot = await GlobalUtils.dbInstance
+    var snapshot = await FirebaseDatabase.instance
         .ref()
         .child('accounts')
         .child(account)
@@ -325,7 +329,7 @@ class APIService {
 
   static Future<void> pushToFireBase(
       String ref, Map<String, dynamic> map) async {
-    await GlobalUtils.dbInstance.ref(ref).set(map).then((_) {
+    await FirebaseDatabase.instance.ref(ref).set(map).then((_) {
       print("Set success");
     }).catchError((onError) {
       print(onError);
@@ -333,7 +337,7 @@ class APIService {
   }
 
   static Future<Customer?> getCustomerByAccount(String account) async {
-    var snapshot = await GlobalUtils.dbInstance
+    var snapshot = await FirebaseDatabase.instance
         .ref()
         .child('customers')
         .child(account)
@@ -350,8 +354,11 @@ class APIService {
   }
 
   static Future<Schedule?> getScheduleById(String id) async {
-    var snapshot =
-        await GlobalUtils.dbInstance.ref().child('schedules').child(id).get();
+    var snapshot = await FirebaseDatabase.instance
+        .ref()
+        .child('schedules')
+        .child(id)
+        .get();
     if (snapshot.exists) {
       final data = snapshot.value;
       if (data == null) return null;
@@ -366,7 +373,7 @@ class APIService {
   static Future<Room_Seat?> getSeatById(String id) async {
     var seatName = id.split("_").last;
     var roomId = id.substring(0, id.length - seatName.length - 1);
-    var snapshot = await GlobalUtils.dbInstance
+    var snapshot = await FirebaseDatabase.instance
         .ref()
         .child('room_seat')
         .child(roomId)
@@ -385,7 +392,7 @@ class APIService {
 
   static Future<Movie?> getMovieById(String id) async {
     var snapshot =
-        await GlobalUtils.dbInstance.ref().child('movies').child(id).get();
+        await FirebaseDatabase.instance.ref().child('movies').child(id).get();
     if (snapshot.exists) {
       final data = snapshot.value;
       if (data == null) return null;
@@ -399,8 +406,11 @@ class APIService {
 
   static Future<List<Schedule>?> getScheduleListByDate(String date) async {
     List<Schedule> scheduleList = [];
-    var snapshot =
-        await GlobalUtils.dbInstance.ref().child('schedules').child(date).get();
+    var snapshot = await FirebaseDatabase.instance
+        .ref()
+        .child('schedules')
+        .child(date)
+        .get();
     if (snapshot.exists) {
       final data = snapshot.value;
       if (data == null) return null;
@@ -417,7 +427,7 @@ class APIService {
   static Future<List<Schedule>?> getScheduleListByDateAndMovie(
       String date, String movieId) async {
     List<Schedule> scheduleList = [];
-    var snapshot = await GlobalUtils.dbInstance
+    var snapshot = await FirebaseDatabase.instance
         .ref()
         .child('schedules')
         .orderByChild("date")
@@ -440,7 +450,7 @@ class APIService {
   static Future<List<Schedule>?> getScheduleListByDateAndMovieAndTheater(
       String date, String movieId, String theaterId) async {
     List<Schedule> scheduleList = [];
-    var snapshot = await GlobalUtils.dbInstance
+    var snapshot = await FirebaseDatabase.instance
         .ref()
         .child('schedules')
         .orderByChild("date")
