@@ -11,6 +11,7 @@ import 'package:movie_theater/pages/home/widgets/appbar_back_button.dart';
 import 'package:movie_theater/pages/home/widgets/home_page_promo_list.dart';
 import 'package:movie_theater/pages/home/widgets/home_page_row_header.dart';
 import 'package:movie_theater/pages/home/widgets/side_sheet_active_button.dart';
+import 'package:movie_theater/pages/movie%20detail/movie_detail_ctrl.dart';
 import 'package:movie_theater/pages/movie%20detail/movie_detail_table.dart';
 import 'package:movie_theater/pages/theater%20select/theater_select_page.dart';
 import 'package:movie_theater/utils/asset.dart';
@@ -18,73 +19,7 @@ import 'package:provider/provider.dart';
 import 'package:side_sheet/side_sheet.dart';
 
 class MovieDetail extends StatelessWidget {
-  MovieDetail({super.key, required this.movie});
-
-  Movie movie;
-  String castString = "";
-  String directorString = "";
-  String genreString = "";
-
-  Future<String> getGenreOutput() async {
-    String s = "";
-    List<String> genreList = [];
-    List<Movie_Genre>? movieGenreList =
-        await APIService.getMovieGenreList(movie.id);
-    for (int i = 0; i < movieGenreList!.length; i++) {
-      Genre? genre = await APIService.getGenreByID(movieGenreList[i].genreId);
-      genreList.add(genre!.name);
-    }
-    s = genreList.join(", ");
-    return s;
-  }
-
-  Future<String> getDirectorOutput() async {
-    String s = "";
-    List<String> directorList = [];
-    List<Credit>? creditList = await APIService.getMovieCreditList(movie.id);
-    if (creditList == null) return s;
-    for (int i = 0; i < creditList.length; i++) {
-      if (directorList.length >= 3) {
-        break;
-      }
-      if (creditList[i].departmentID == 0 && directorList.length < 3) {
-        Participant? participant =
-            await APIService.getParticipantByID(creditList[i].particapantID);
-        directorList.add(participant!.name);
-      }
-    }
-    s = directorList.join(", ");
-    return s;
-  }
-
-  Future<String> getCastOutput() async {
-    String s = "";
-    List<String> castList = [];
-    List<Credit>? creditList = await APIService.getMovieCreditList(movie.id);
-    if (creditList == null) {
-      return s;
-    }
-    for (int i = 0; i < creditList.length; i++) {
-      if (castList.length >= 5) {
-        break;
-      }
-      if (creditList[i].departmentID == 1 && castList.length < 5) {
-        Participant? participant =
-            await APIService.getParticipantByID(creditList[i].particapantID);
-        if (participant != null) {
-          castList.add(participant.name); // Use `!` if sure it's not null.
-        }
-      }
-    }
-    s = castList.join(", ");
-    return s;
-  }
-
-  Future getInforFunc() async {
-    genreString = await getGenreOutput();
-    castString = await getCastOutput();
-    directorString = await getDirectorOutput();
-  }
+  const MovieDetail({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -109,7 +44,7 @@ class MovieDetail extends StatelessWidget {
       body: Container(
         decoration: const BoxDecoration(color: Colors.black),
         child: FutureBuilder(
-            future: getInforFunc(),
+            future: MovieDetailController.getInforFunc(),
             initialData: null,
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
@@ -155,18 +90,20 @@ class MovieDetail extends StatelessWidget {
                             children: [
                               SizedBox(height: screenSize.height / 4.4),
                               MovieInfoRowLayout(
-                                  screenSize: screenSize, movie: movie),
+                                  screenSize: screenSize,
+                                  movie: MovieDetailController.movie!),
                               const SizedBox(height: 20),
                               Text(
-                                movie.overview,
+                                MovieDetailController.movie!.overview,
                                 style: ThemeConfig.nearlyWhiteTextStyle(),
                               ),
                               const SizedBox(height: 20),
                               MovieDetailTable(
-                                movie: movie,
-                                genreString: genreString,
-                                castString: castString,
-                                directorString: directorString,
+                                movie: MovieDetailController.movie!,
+                                genreString: MovieDetailController.genreString,
+                                castString: MovieDetailController.castString,
+                                directorString:
+                                    MovieDetailController.directorString,
                               ),
                               const SizedBox(height: 50),
                               const RowHeader(),
@@ -199,11 +136,8 @@ class MovieDetail extends StatelessWidget {
             backgroundColor: Colors.redAccent,
             foregroundColor: Colors.white,
             onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => TheaterSelectPage(movie: movie)),
-              );
+              GlobalUtils.navToTheaterSelect(
+                  context, MovieDetailController.movie!);
             },
             child: const Text("Book"),
           ),

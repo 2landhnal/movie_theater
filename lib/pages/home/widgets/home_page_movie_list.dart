@@ -4,7 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:movie_theater/api_services/api_services.dart';
 import 'package:movie_theater/data/dataClasses.dart';
+import 'package:movie_theater/pages/home/home_page_ctrl.dart';
 import 'package:movie_theater/pages/home/widgets/home_page_movie_title.dart';
+import 'package:movie_theater/pages/home/widgets/home_page_movie_item.dart';
 import 'package:movie_theater/utils/asset.dart';
 import 'package:provider/provider.dart';
 
@@ -24,7 +26,7 @@ class _HomePageMovieListState extends State<HomePageMovieList> {
     // TODO: implement initState
     super.initState();
     parentFutureFunc =
-        context.read<GlobalUtils>().getMovieByStreamingState("Streaming");
+        HomePageController.getInstance().getMovieByStreamingState("Streaming");
   }
 
   @override
@@ -41,8 +43,7 @@ class _HomePageMovieListState extends State<HomePageMovieList> {
               onTap: () {
                 setState(() {
                   streaming = true;
-                  parentFutureFunc = context
-                      .read<GlobalUtils>()
+                  parentFutureFunc = HomePageController.getInstance()
                       .getMovieByStreamingState("Streaming");
                 });
               },
@@ -58,8 +59,7 @@ class _HomePageMovieListState extends State<HomePageMovieList> {
               onTap: () {
                 setState(() {
                   streaming = false;
-                  parentFutureFunc = context
-                      .read<GlobalUtils>()
+                  parentFutureFunc = HomePageController.getInstance()
                       .getMovieByStreamingState("Upcoming");
                 });
               },
@@ -144,53 +144,6 @@ class _MovieListState extends State<MovieList> {
           ],
         );
       },
-    );
-  }
-}
-
-class MovieItem extends StatelessWidget {
-  MovieItem({
-    super.key,
-    required this.height,
-    required this.padding,
-    required this.movie,
-  });
-
-  final double height;
-  final double padding;
-  Movie movie;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        print("Clicked");
-        context.read<GlobalUtils>().movieDetail(context, movie);
-      },
-      child: Padding(
-        padding: EdgeInsets.all(padding),
-        child: Container(
-          width: (height - padding * 2) * 2 / 3,
-          decoration: BoxDecoration(
-            image: DecorationImage(
-                fit: BoxFit.cover,
-                image: NetworkImage(
-                  //"https://image.tmdb.org/t/p/w500/arw2vcBveWOVZr6pxd9XTd1TdQa.jpg"
-                  movie.getPosterFullPath(),
-                )),
-            //color: Colors.amber,
-            borderRadius: const BorderRadius.all(Radius.circular(8.0)),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.5),
-                spreadRadius: 5,
-                blurRadius: 10,
-                offset: const Offset(0, 5), // changes position of shadow
-              ),
-            ],
-          ),
-        ),
-      ),
     );
   }
 }

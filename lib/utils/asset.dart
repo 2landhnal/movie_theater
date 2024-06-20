@@ -6,18 +6,19 @@ import 'package:intl/intl.dart';
 import 'package:movie_theater/api_services/api_services.dart';
 import 'package:movie_theater/data/dataClasses.dart';
 import 'package:movie_theater/pages/login/login_page.dart';
+import 'package:movie_theater/pages/movie%20detail/movie_detail_ctrl.dart';
 import 'package:movie_theater/pages/movie%20detail/movie_detail_page.dart';
-import 'package:movie_theater/pages/sign%20up/signup_page.dart';
+import 'package:movie_theater/pages/my%20tickets/my_ticket_page.dart';
+import 'package:movie_theater/pages/sign%20up/register_page.dart';
+import 'package:movie_theater/pages/theater%20select/theater_select_ctrl.dart';
+import 'package:movie_theater/pages/theater%20select/theater_select_page.dart';
 import 'package:movie_theater/utils/notify.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class GlobalUtils extends ChangeNotifier {
-  static User? currentAccount;
-  static Customer? currentCustomer;
+class GlobalUtils {
   static MaterialColor purpleTextColor = Colors.deepPurple;
-  static late List<Movie> currentMovieList;
   static DateFormat globalDateFormat = DateFormat('yyyy-MM-dd');
-  void naviToLogin(BuildContext context) {
+  static void navToLogin(BuildContext context) {
     Navigator.pop(context);
     Navigator.push(
       context,
@@ -25,10 +26,19 @@ class GlobalUtils extends ChangeNotifier {
     );
   }
 
-  void movieDetail(BuildContext context, Movie movie) {
+  static void navToMyTicket(BuildContext context) {
+    Navigator.pop(context);
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => MovieDetail(movie: movie)),
+      MaterialPageRoute(builder: (context) => MyTicketsPage()),
+    );
+  }
+
+  static void navToTheaterSelect(BuildContext context, Movie movie) {
+    TheaterSelectController.movie = movie;
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => TheaterSelectPage()),
     );
   }
 
@@ -52,53 +62,15 @@ class GlobalUtils extends ChangeNotifier {
   //   );
   // }
 
-  Future<List<Movie>> getMovieByStreamingState(String state) async {
-    List<Movie> movies = await APIService.getAllMovies() as List<Movie>;
-    movies =
-        movies.where((element) => element.streaming_state == state).toList();
-    return movies;
-  }
-
-  void signUpFunc(BuildContext context) {
+  static void navToSignUpPage(BuildContext context) {
     Navigator.pop(context);
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => const SignUpPage()),
+      MaterialPageRoute(builder: (context) => const RegisterPage()),
     );
   }
 
-  Future<void> logOutFunc(BuildContext context) async {
-    await FirebaseAuth.instance.signOut();
-    currentAccount = null;
-    currentCustomer = null;
-    Navigator.pop(context);
-    notifyListeners();
-    MyNotifier.ShowToast("Log out succeess!");
-  }
-
-  static Future checkState() async {
-    FirebaseAuth.instance.userChanges().listen((User? user) {
-      if (user == null) {
-        print('User is currently signed out!');
-      } else {
-        print('User is signed in!');
-      }
-    });
-  }
-
-  Future<void> initLoginCheck() async {
-    await checkState();
-  }
-
-  void loginAccount(User? acc, Customer? cus, BuildContext context) {
-    currentAccount = acc;
-    currentCustomer = cus;
-    notifyListeners();
-    // ScaffoldMessenger.of(context)
-    //     .showSnackBar(GlobalUtils.createSnackBar(context, "Success!!"));
-  }
-
-  InputDecoration inputDecorationBlack({
+  static InputDecoration inputDecorationBlack({
     String labelText = "Label",
     TextStyle labelStyle = const TextStyle(color: Colors.white),
   }) {

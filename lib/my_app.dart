@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:movie_theater/helpers/helper.dart';
 import 'package:movie_theater/pages/home/home_page.dart';
 import 'package:movie_theater/pages/home/home_page_body.dart';
+import 'package:movie_theater/pages/login/login_ctrl.dart';
 import 'package:movie_theater/pages/login/login_page.dart';
 import 'package:movie_theater/pages/movie%20detail/movie_detail_page.dart';
 import 'package:movie_theater/pages/my%20tickets/my_ticket_page.dart';
@@ -31,26 +32,24 @@ class _MainAppState extends State<MainApp> {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-        create: (context) => GlobalUtils()..initLoginCheck(),
-        child: FutureBuilder(
-          future: GlobalUtils.checkState(),
-          initialData: null,
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(
-                  child:
-                      CircularProgressIndicator()); // Hoặc bất kỳ Widget nào để hiển thị trạng thái chờ
-            }
-            if (snapshot.hasError) {
-              print("Error: ${snapshot.error}");
-              return Text('Error: ${snapshot.error}'); // Xử lý lỗi
-            }
-            return MaterialApp(
-              debugShowCheckedModeBanner: false,
-              home: HomePage(),
-            );
-          },
-        ));
+    return FutureBuilder(
+      future: LoginController.checkState(),
+      initialData: null,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(
+              child:
+                  CircularProgressIndicator()); // Hoặc bất kỳ Widget nào để hiển thị trạng thái chờ
+        }
+        if (snapshot.hasError) {
+          print("Error: ${snapshot.error}");
+          return Text('Error: ${snapshot.error}'); // Xử lý lỗi
+        }
+        return MaterialApp(
+          debugShowCheckedModeBanner: false,
+          home: HomePage(),
+        );
+      },
+    );
   }
 }

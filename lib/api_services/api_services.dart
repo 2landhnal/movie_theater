@@ -2,6 +2,7 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:movie_theater/data/dataClasses.dart';
 import 'package:movie_theater/helpers/helper.dart';
+import 'package:movie_theater/pages/login/login_ctrl.dart';
 import 'package:movie_theater/utils/asset.dart';
 
 class APIService {
@@ -28,7 +29,7 @@ class APIService {
         .ref()
         .child('bills')
         .orderByChild("userId")
-        .equalTo(GlobalUtils.currentAccount!.uid)
+        .equalTo(LoginController.currentAccount!.uid)
         .get();
     if (snapshot.exists) {
       final data = snapshot.value;
@@ -57,24 +58,6 @@ class APIService {
       if (data == null) return [];
       for (var child in snapshot.children) {
         payMethods.add(BillDetail.fromMap(child.value as Map));
-      }
-      print("DONE!!");
-      return payMethods;
-    } else {
-      print('No data available.');
-    }
-    return [];
-  }
-
-  static Future<List<PaymentMethod>> getAllPayMethod() async {
-    List<PaymentMethod> payMethods = [];
-    var snapshot =
-        await FirebaseDatabase.instance.ref().child('payment_methods').get();
-    if (snapshot.exists) {
-      final data = snapshot.value;
-      if (data == null) return [];
-      for (var child in snapshot.children) {
-        payMethods.add(PaymentMethod.fromMap(child.value as Map));
       }
       print("DONE!!");
       return payMethods;
@@ -416,54 +399,6 @@ class APIService {
       if (data == null) return null;
       for (var child in snapshot.children) {
         scheduleList.add(Schedule.fromMap(child.value as Map));
-      }
-      return scheduleList;
-    } else {
-      print('No data available.');
-    }
-    return [];
-  }
-
-  static Future<List<Schedule>?> getScheduleListByDateAndMovie(
-      String date, String movieId) async {
-    List<Schedule> scheduleList = [];
-    var snapshot = await FirebaseDatabase.instance
-        .ref()
-        .child('schedules')
-        .orderByChild("date")
-        .equalTo(date)
-        .get();
-    if (snapshot.exists) {
-      final data = snapshot.value;
-      if (data == null) return null;
-      for (var child in snapshot.children) {
-        var tmp = Schedule.fromMap(child.value as Map);
-        if (tmp.movieId == movieId) scheduleList.add(tmp);
-      }
-      return scheduleList;
-    } else {
-      print('No data available.');
-    }
-    return [];
-  }
-
-  static Future<List<Schedule>?> getScheduleListByDateAndMovieAndTheater(
-      String date, String movieId, String theaterId) async {
-    List<Schedule> scheduleList = [];
-    var snapshot = await FirebaseDatabase.instance
-        .ref()
-        .child('schedules')
-        .orderByChild("date")
-        .equalTo(date)
-        .get();
-    if (snapshot.exists) {
-      final data = snapshot.value;
-      if (data == null) return null;
-      for (var child in snapshot.children) {
-        var tmp = Schedule.fromMap(child.value as Map);
-        if (tmp.movieId == movieId && tmp.roomId.split("_")[0] == theaterId) {
-          scheduleList.add(tmp);
-        }
       }
       return scheduleList;
     } else {

@@ -4,6 +4,8 @@ import 'package:flutter/widgets.dart';
 import 'package:movie_theater/data/dataClasses.dart';
 import 'package:movie_theater/helpers/helper.dart';
 import 'package:movie_theater/pages/theater%20select/theater_select_page.dart';
+import 'package:movie_theater/utils/asset.dart';
+import 'package:provider/provider.dart';
 
 class HomePageMovieTitle extends StatelessWidget {
   HomePageMovieTitle({super.key, required this.movie});
@@ -49,11 +51,7 @@ class HomePageMovieTitle extends StatelessWidget {
               foregroundColor: MaterialStateProperty.all<Color>(Colors.white),
             ),
             onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => TheaterSelectPage(movie: movie)),
-              );
+              GlobalUtils.navToTheaterSelect(context, movie);
             },
             child: const Text('Order now'),
           )

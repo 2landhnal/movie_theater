@@ -6,6 +6,7 @@ import 'package:movie_theater/api_services/api_services.dart';
 import 'package:movie_theater/data/dataClasses.dart';
 import 'package:movie_theater/helpers/helper.dart';
 import 'package:movie_theater/pages/home/widgets/appbar_back_button.dart';
+import 'package:movie_theater/pages/login/login_ctrl.dart';
 import 'package:movie_theater/utils/asset.dart';
 import 'package:movie_theater/utils/notify.dart';
 import 'package:provider/provider.dart';
@@ -22,30 +23,11 @@ class LoginPage extends StatelessWidget {
     if (!_formKey.currentState!.validate()) {
       return;
     }
-    try {
-      //FirebaseAuth.instance.setPersistence(Persistence.SESSION);
-      await FirebaseAuth.instance.signInWithEmailAndPassword(
-          email: usernameTxtCtrl.text, password: passwordTxtCtrl.text);
-    } on FirebaseAuthException catch (e) {
-      if (e.code == 'user-not-found') {
-        MyNotifier.ShowToast("No user found for that email.");
-        return;
-      } else if (e.code == 'wrong-password') {
-        MyNotifier.ShowToast('Wrong password provided for that user.');
-        return;
-      } else {
-        MyNotifier.ShowToast(e.code);
-        return;
-      }
+    if (await LoginController.getInstance()
+        .login(context, usernameTxtCtrl.text, passwordTxtCtrl.text)) {
+    } else {
+      return;
     }
-    User? currentUser = FirebaseAuth.instance.currentUser;
-    // if (!currentUser!.emailVerified) {
-    //   await FirebaseAuth.instance.signOut();
-    //   MyNotifier.ShowToast('Email need to be verified!');
-    //   return;
-    // }
-    Customer? cus = await APIService.getCustomerByAccount(currentUser!.uid);
-    context.read<GlobalUtils>().loginAccount(currentUser, cus, context);
     Navigator.pop(context);
     MyNotifier.ShowToast("Login success!!");
   }
@@ -119,9 +101,7 @@ class PasswordField extends StatelessWidget {
       enableSuggestions: false,
       autocorrect: false,
       controller: ctrl,
-      decoration: context
-          .read<GlobalUtils>()
-          .inputDecorationBlack(labelText: "Password"),
+      decoration: GlobalUtils.inputDecorationBlack(labelText: "Password"),
     );
   }
 }
@@ -136,9 +116,7 @@ class UsernameField extends StatelessWidget {
         validator: MyHelper.validateEmail,
         style: const TextStyle(color: Colors.white),
         controller: ctrl,
-        decoration: context
-            .read<GlobalUtils>()
-            .inputDecorationBlack(labelText: "Email"));
+        decoration: GlobalUtils.inputDecorationBlack(labelText: "Email"));
   }
 }
 
@@ -203,7 +181,7 @@ class SignUpButton extends StatelessWidget {
       width: double.infinity,
       child: TextButton(
         onPressed: () {
-          context.read<GlobalUtils>().signUpFunc(context);
+          GlobalUtils.navToSignUpPage(context);
         },
         style: ButtonStyle(
           backgroundColor: MaterialStateProperty.all<Color>(Colors.black),

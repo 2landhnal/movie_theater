@@ -10,7 +10,9 @@ import 'package:movie_theater/data/dataClasses.dart';
 import 'package:movie_theater/helpers/helper.dart';
 import 'package:movie_theater/pages/home/widgets/appbar_back_button.dart';
 import 'package:movie_theater/pages/home/widgets/side_sheet_active_button.dart';
+import 'package:movie_theater/pages/login/login_ctrl.dart';
 import 'package:movie_theater/pages/movie%20detail/movie_detail_page.dart';
+import 'package:movie_theater/pages/pay/payment_ctrl.dart';
 import 'package:movie_theater/pages/pay/widget/bordered_text.dart';
 import 'package:movie_theater/pages/pay/widget/full_screen_circular_progress.dart';
 import 'package:movie_theater/utils/asset.dart';
@@ -28,15 +30,7 @@ class PayPage extends StatelessWidget {
 
   Theater theater;
   List<Ticket> ticketList;
-  List<PaymentMethod> paymentMethodList = [];
-
-  final ValueNotifier<int> _currentIndex = ValueNotifier<int>(0);
   final ValueNotifier<bool> _loading = ValueNotifier<bool>(false);
-
-  Future getPaymentMethod() async {
-    paymentMethodList = await APIService.getAllPayMethod();
-  }
-
   final TextEditingController _voucheController = TextEditingController();
 
   @override
@@ -146,7 +140,7 @@ class PayPage extends StatelessWidget {
                   ),
                 ),
                 FutureBuilder(
-                  future: getPaymentMethod(),
+                  future: PaymentController.loadAllPayMethod(),
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
                       return const Center(
@@ -163,17 +157,22 @@ class PayPage extends StatelessWidget {
                       ); // Xử lý lỗi
                     }
                     return ValueListenableBuilder(
-                        valueListenable: _currentIndex,
+                        valueListenable: PaymentController.currentIndex,
                         builder: (context, value, child) {
                           return Column(
                             children: List.generate(
-                                paymentMethodList.length,
+                                PaymentController.paymentMethodList.length,
                                 (index) => PaymentRow(
-                                      header: paymentMethodList[index].name,
-                                      link: paymentMethodList[index].iconLink,
-                                      selected: index == _currentIndex.value,
-                                      onTap: () =>
-                                          {_currentIndex.value = index},
+                                      header: PaymentController
+                                          .paymentMethodList[index].name,
+                                      link: PaymentController
+                                          .paymentMethodList[index].iconLink,
+                                      selected: index ==
+                                          PaymentController.currentIndex.value,
+                                      onTap: () => {
+                                        PaymentController.currentIndex.value =
+                                            index
+                                      },
                                     )),
                           );
                         });
@@ -189,23 +188,10 @@ class PayPage extends StatelessWidget {
           child: TextButton(
             onPressed: () async {
               _loading.value = true;
-              Bill newBill = Bill(
-                userId: GlobalUtils.currentAccount!.uid!,
-                date: DateTime.now().toString(),
-                voucherId: "null",
-                paymentMethodId: paymentMethodList[_currentIndex.value].id,
-              );
-              print("newBill.id: ${newBill.id}");
-              BillDetail tmpBillDetail;
-              for (var i in ticketList) {
-                i.ordered = true;
-                await APIService.pushToFireBase("tickets/${i.id}/", i.toMap());
-                tmpBillDetail = BillDetail(productId: i.id, billId: newBill.id);
-                await APIService.pushToFireBase(
-                    "bill_details/${tmpBillDetail.id}/", tmpBillDetail.toMap());
-              }
-              await APIService.pushToFireBase(
-                  "bills/${newBill.id}/", newBill.toMap());
+              await PaymentController.addBillInfo(
+                  PaymentController
+                      .paymentMethodList[PaymentController.currentIndex.value],
+                  ticketList);
               _loading.value = false;
               Navigator.of(context).popUntil((route) => route.isFirst);
               Fluttertoast.showToast(

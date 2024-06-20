@@ -11,7 +11,7 @@ Flexible(
       'Text largeeeeeeeeeeeeeeeeeeeeeee',
       overflow: TextOverflow.ellipsis,
     ),
-  ),
+  ),a
 ),
 
 #2 Navigation

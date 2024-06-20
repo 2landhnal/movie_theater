@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:movie_theater/data/dataClasses.dart';
+import 'package:movie_theater/pages/seat%20select%20page/seat_box_ctrl.dart';
 
 class SeatBox extends StatefulWidget {
   SeatBox({
@@ -14,6 +15,7 @@ class SeatBox extends StatefulWidget {
   final Room_Seat seat;
   final int index;
   Function onClick;
+  late SeatBoxController ctrl;
 
   @override
   State<SeatBox> createState() => _SeatBoxState();
@@ -24,11 +26,17 @@ class _SeatBoxState extends State<SeatBox> {
   Color selectedColor = const Color.fromARGB(255, 163, 0, 0);
 
   @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    widget.ctrl = SeatBoxController(widget);
+  }
+
+  @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        if (widget.ticket.ordered) return;
-        widget.onClick(widget.ticket);
+        widget.ctrl.seatBoxOnClick();
         setState(() {
           selected = !selected;
         });

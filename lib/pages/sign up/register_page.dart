@@ -12,20 +12,21 @@ import 'package:movie_theater/data/dataClasses.dart';
 import 'package:movie_theater/helpers/helper.dart';
 import 'package:movie_theater/my_app.dart';
 import 'package:movie_theater/pages/home/widgets/appbar_back_button.dart';
+import 'package:movie_theater/pages/sign%20up/register_ctrl.dart';
 import 'package:movie_theater/utils/asset.dart';
 import 'package:movie_theater/utils/notify.dart';
 import 'package:provider/provider.dart';
 
-class SignUpPage extends StatefulWidget {
-  const SignUpPage({super.key});
+class RegisterPage extends StatefulWidget {
+  const RegisterPage({super.key});
 
   @override
-  State<SignUpPage> createState() => signupPageState();
+  State<RegisterPage> createState() => signupPageState();
 }
 
-class signupPageState extends State<SignUpPage> {
-  DateTime selectedDate = DateTime.now();
+class signupPageState extends State<RegisterPage> {
   DateFormat formatter = DateFormat('yyyy-MM-dd');
+  DateTime selectedDate = DateTime.now();
   bool datePicked = false;
   static List<String> genderList = <String>['Male', 'Female', 'Other'];
   String _dropDownValue = "Male";
@@ -33,20 +34,20 @@ class signupPageState extends State<SignUpPage> {
       nameTxtCtrl = TextEditingController(),
       emailTxtCtrl = TextEditingController();
 
-  void sendVerify() {
-    if (passwordTxtCtrl.text == "" ||
-        nameTxtCtrl.text == "" ||
-        emailTxtCtrl.text == "") {
-      MyNotifier.ShowToast("Please fill the required field!");
-      return;
-    }
-    FirebaseAuth.instance
-        .sendSignInLinkToEmail(
-            email: emailTxtCtrl.text, actionCodeSettings: VerifyConfig.acs)
-        .catchError(
-            (onError) => print('Error sending email verification $onError'))
-        .then((value) => print('Successfully sent email verification'));
-  }
+  // void sendVerify() {
+  //   if (passwordTxtCtrl.text == "" ||
+  //       nameTxtCtrl.text == "" ||
+  //       emailTxtCtrl.text == "") {
+  //     MyNotifier.ShowToast("Please fill the required field!");
+  //     return;
+  //   }
+  //   FirebaseAuth.instance
+  //       .sendSignInLinkToEmail(
+  //           email: emailTxtCtrl.text, actionCodeSettings: VerifyConfig.acs)
+  //       .catchError(
+  //           (onError) => print('Error sending email verification $onError'))
+  //       .then((value) => print('Successfully sent email verification'));
+  // }
 
   void signup() async {
     UserCredential userCredential;
@@ -57,45 +58,17 @@ class signupPageState extends State<SignUpPage> {
       MyNotifier.ShowToast("Please fill the required field!");
       return;
     }
-    try {
-      userCredential = await FirebaseAuth.instance
-          .createUserWithEmailAndPassword(
-              email: emailTxtCtrl.text, password: passwordTxtCtrl.text);
-    } on FirebaseAuthException catch (e) {
-      if (e.code == 'weak-password') {
-        MyNotifier.ShowToast("The password provided is too weak!");
-        return;
-      } else if (e.code == 'email-already-in-use') {
-        MyNotifier.ShowToast("Username already exist!");
-        return;
-      } else {
-        MyNotifier.ShowToast(e.code);
-        return;
-      }
-    } catch (e) {
-      print(e);
+    if (await RegisterController.register(
+      emailTxtCtrl.text,
+      passwordTxtCtrl.text,
+      nameTxtCtrl.text,
+      selectedDate,
+      _dropDownValue,
+    )) {
+    } else {
       return;
     }
-    String salt = MyHelper.getSalt();
-    Account account = Account(
-        uid: userCredential.user!.uid,
-        username: emailTxtCtrl.text,
-        password: MyHelper.hash(passwordTxtCtrl.text + salt),
-        role_id: 3,
-        salt: salt);
-    Customer customer = Customer(
-      uid: userCredential.user!.uid,
-      name: nameTxtCtrl.text,
-      email: emailTxtCtrl.text,
-      birthday: formatter.format(selectedDate).toString(),
-      gender: _dropDownValue,
-      join_at: DateFormat('yyyy-MM-dd').format(DateTime.now()),
-    );
-    await APIService.pushToFireBase(
-        "accounts/${account.uid}/", account.toMap());
-    await APIService.pushToFireBase(
-        "customers/${customer.uid}/", customer.toMap());
-    context.read<GlobalUtils>().naviToLogin(context);
+    GlobalUtils.navToLogin(context);
     MyNotifier.ShowToast("Register success!");
   }
 
@@ -188,10 +161,8 @@ class signupPageState extends State<SignUpPage> {
                                 height: 63,
                                 color: Colors.transparent,
                                 child: InputDecorator(
-                                  decoration: context
-                                      .read<GlobalUtils>()
-                                      .inputDecorationBlack(
-                                          labelText: "Gender"),
+                                  decoration: GlobalUtils.inputDecorationBlack(
+                                      labelText: "Gender"),
                                   child: DropdownButtonHideUnderline(
                                     child: DropdownButton(
                                         dropdownColor: Colors.black,
@@ -258,9 +229,7 @@ class EmailField extends StatelessWidget {
         controller: ctrl,
         style: const TextStyle(color: Colors.white),
         validator: MyHelper.validateEmail,
-        decoration: context
-            .read<GlobalUtils>()
-            .inputDecorationBlack(labelText: "Email"),
+        decoration: GlobalUtils.inputDecorationBlack(labelText: "Email"),
       ),
     );
   }
@@ -283,9 +252,7 @@ class PasswordField extends StatelessWidget {
         autocorrect: false,
         controller: ctrl,
         style: const TextStyle(color: Colors.white),
-        decoration: context
-            .read<GlobalUtils>()
-            .inputDecorationBlack(labelText: "Password"));
+        decoration: GlobalUtils.inputDecorationBlack(labelText: "Password"));
   }
 }
 
@@ -303,9 +270,7 @@ class NameField extends StatelessWidget {
         validator: MyHelper.validateNull,
         controller: ctrl,
         style: const TextStyle(color: Colors.white),
-        decoration: context
-            .read<GlobalUtils>()
-            .inputDecorationBlack(labelText: "Fullname"));
+        decoration: GlobalUtils.inputDecorationBlack(labelText: "Fullname"));
   }
 }
 
@@ -320,9 +285,7 @@ class UsernameField extends StatelessWidget {
       validator: MyHelper.validateNull,
       controller: ctrl,
       style: const TextStyle(color: Colors.white),
-      decoration: context
-          .read<GlobalUtils>()
-          .inputDecorationBlack(labelText: "Username"),
+      decoration: GlobalUtils.inputDecorationBlack(labelText: "Username"),
     );
   }
 }

@@ -10,8 +10,10 @@ import 'package:movie_theater/data/dataClasses.dart';
 import 'package:movie_theater/helpers/helper.dart';
 import 'package:movie_theater/pages/home/widgets/appbar_back_button.dart';
 import 'package:movie_theater/pages/home/widgets/side_sheet_active_button.dart';
+import 'package:movie_theater/pages/login/login_ctrl.dart';
 import 'package:movie_theater/pages/login/login_page.dart';
 import 'package:movie_theater/pages/pay/pay_page.dart';
+import 'package:movie_theater/pages/seat%20select%20page/seat_select_ctrl.dart';
 import 'package:movie_theater/utils/asset.dart';
 
 import 'seat_box.dart';
@@ -22,25 +24,6 @@ class SeatSelectPage extends StatelessWidget {
   Theater theater;
 
   Map<String, List<int>> seatMap = <String, List<int>>{};
-  ValueNotifier<List<Ticket>> selectingTickets =
-      ValueNotifier<List<Ticket>>([]);
-
-  void AddTicket(Ticket tic) {
-    selectingTickets.value = List.from(selectingTickets.value)..add(tic);
-  }
-
-  void RemoveTicket(Ticket tic) {
-    selectingTickets.value = List.from(selectingTickets.value)
-      ..removeWhere((element) => element.id == tic.id);
-  }
-
-  void Click(Ticket tic) {
-    if (List.from(selectingTickets.value).contains(tic)) {
-      RemoveTicket(tic);
-    } else {
-      AddTicket(tic);
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -172,7 +155,7 @@ class SeatSelectPage extends StatelessWidget {
                                     ticket: ticketMap[seats[index].id]!,
                                     seat: seats[index],
                                     index: index,
-                                    onClick: Click,
+                                    onClick: SeatSelectController.Click,
                                   ),
                                 )),
                       ),
@@ -184,7 +167,7 @@ class SeatSelectPage extends StatelessWidget {
           ),
           bottomNavigationBar: SeatSelectBottom(
             movie: movie,
-            selectingTickets: selectingTickets,
+            selectingTickets: SeatSelectController.selectingTickets,
             schedule: schedule,
             theater: theater,
           ),
@@ -258,7 +241,7 @@ class _SeatSelectBottomState extends State<SeatSelectBottom> {
                 ),
                 TextButton(
                   onPressed: () {
-                    if (GlobalUtils.currentAccount == null) {
+                    if (LoginController.currentAccount == null) {
                       //Navigator.of(context).popUntil((route) => route.isFirst);
                       Navigator.push(
                         context,

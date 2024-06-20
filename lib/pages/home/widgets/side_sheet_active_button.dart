@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:movie_theater/helpers/helper.dart';
 import 'package:movie_theater/pages/home/home_page.dart';
+import 'package:movie_theater/pages/home/widgets/side_sheet_ctrl.dart';
+import 'package:movie_theater/pages/login/login_ctrl.dart';
 import 'package:movie_theater/pages/login/login_page.dart';
 import 'package:movie_theater/pages/my%20tickets/my_ticket_page.dart';
 import 'package:movie_theater/utils/asset.dart';
@@ -15,22 +17,6 @@ class SideSheetActiveButton extends StatelessWidget {
   const SideSheetActiveButton({
     super.key,
   });
-
-  void myTicketsOnClick(BuildContext context) {
-    if (GlobalUtils.currentAccount == null) {
-      Navigator.pop(context);
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => LoginPage()),
-      );
-      return;
-    }
-    Navigator.pop(context);
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => MyTicketsPage()),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -52,7 +38,7 @@ class SideSheetActiveButton extends StatelessWidget {
                 children: [
                   SizedBox(height: screenSize.height / 20),
                   Visibility(
-                    visible: GlobalUtils.currentAccount != null,
+                    visible: LoginController.currentAccount != null,
                     child: Column(
                       children: [
                         CircleAvatar(
@@ -62,8 +48,8 @@ class SideSheetActiveButton extends StatelessWidget {
                         ),
                         const SizedBox(height: 10),
                         Text(
-                          GlobalUtils.currentCustomer != null
-                              ? GlobalUtils.currentCustomer!.name
+                          LoginController.currentCustomer != null
+                              ? LoginController.currentCustomer!.name
                               : "username",
                           style: const TextStyle(color: Colors.white),
                         ),
@@ -113,7 +99,7 @@ class SideSheetActiveButton extends StatelessWidget {
                           IconTextBelowWidget(
                             iconData: Icons.airplane_ticket_outlined,
                             content: "My Tickets",
-                            func: myTicketsOnClick,
+                            func: SideSheetController.myTicketsOnClick,
                           ),
                         ],
                       ),
@@ -133,7 +119,7 @@ class SideSheetActiveButton extends StatelessWidget {
                       ),
                     ],
                   ),
-                  GlobalUtils.currentAccount == null
+                  LoginController.currentAccount == null
                       ? Column(
                           children: [
                             SideSheetButton(
@@ -143,21 +129,18 @@ class SideSheetActiveButton extends StatelessWidget {
                             ),
                             SideSheetButton(
                               buttonText: "Log In",
-                              func: () => context
-                                  .read<GlobalUtils>()
-                                  .naviToLogin(context),
+                              func: () => GlobalUtils.navToLogin(context),
                             ),
                             SideSheetButton(
                                 buttonText: "Register",
-                                func: () => context
-                                    .read<GlobalUtils>()
-                                    .signUpFunc(context)),
+                                func: () =>
+                                    GlobalUtils.navToSignUpPage(context)),
                           ],
                         )
                       : SideSheetButton(
                           buttonText: "Log out",
                           func: () =>
-                              context.read<GlobalUtils>().logOutFunc(context),
+                              LoginController.getInstance().logOutFunc(context),
                         ),
                 ],
               ),

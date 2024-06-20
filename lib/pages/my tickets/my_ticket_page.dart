@@ -11,38 +11,12 @@ import 'package:movie_theater/data/dataClasses.dart';
 import 'package:movie_theater/helpers/helper.dart';
 import 'package:movie_theater/pages/home/widgets/appbar_back_button.dart';
 import 'package:movie_theater/pages/home/widgets/side_sheet_active_button.dart';
+import 'package:movie_theater/pages/my%20tickets/my_ticket_ctrl.dart';
 import 'package:movie_theater/pages/pay/pay_page.dart';
 import 'package:movie_theater/utils/asset.dart';
 
 class MyTicketsPage extends StatelessWidget {
   MyTicketsPage({super.key});
-
-  List<Bill> fullBillList = [];
-  List<Bill> upComingList = [];
-  List<Bill> watchedList = [];
-  ValueNotifier<List<Bill>> billList = ValueNotifier([]);
-  Future getBillList() async {
-    upComingList = [];
-    watchedList = [];
-    fullBillList = await APIService.getUserBills();
-    for (var v in fullBillList) {
-      DateTime dt = await APIService.getEndScheduleTimeByBill(v.id);
-      if (dt.isAfter(DateTime.now())) {
-        upComingList.add(v);
-      } else {
-        watchedList.add(v);
-      }
-    }
-    billList.value = upComingList;
-  }
-
-  void upcomingMode() {
-    billList.value = upComingList;
-  }
-
-  void watchedMode() {
-    billList.value = watchedList;
-  }
 
   ValueNotifier<bool> upcoming = ValueNotifier(true);
 
@@ -85,7 +59,7 @@ class MyTicketsPage extends StatelessWidget {
                   children: [
                     GestureDetector(
                       onTap: () {
-                        upcomingMode();
+                        MyTicketController.upcomingMode();
                         upcoming.value = true;
                       },
                       child: Padding(
@@ -102,7 +76,7 @@ class MyTicketsPage extends StatelessWidget {
                     ),
                     GestureDetector(
                       onTap: () {
-                        watchedMode();
+                        MyTicketController.watchedMode();
                         upcoming.value = false;
                       },
                       child: Padding(
@@ -130,7 +104,7 @@ class MyTicketsPage extends StatelessWidget {
           ),
           color: const Color.fromRGBO(0, 0, 0, 1),
           child: FutureBuilder(
-              future: getBillList(),
+              future: MyTicketController.getBillList(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(
@@ -144,13 +118,16 @@ class MyTicketsPage extends StatelessWidget {
                   ); // Xử lý lỗi
                 }
                 return ValueListenableBuilder(
-                  valueListenable: billList,
+                  valueListenable: MyTicketController.billList,
                   builder: (context, value, child) => SingleChildScrollView(
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 15),
                       child: Column(
-                        children: List.generate(billList.value.length,
-                            (index) => BillRow(bill: billList.value[index])),
+                        children: List.generate(
+                            MyTicketController.billList.value.length,
+                            (index) => BillRow(
+                                bill:
+                                    MyTicketController.billList.value[index])),
                       ),
                     ),
                   ),

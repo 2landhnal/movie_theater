@@ -11,15 +11,13 @@ import 'package:movie_theater/pages/home/widgets/appbar_back_button.dart';
 import 'package:movie_theater/pages/home/widgets/side_sheet_active_button.dart';
 import 'package:movie_theater/pages/login/login_page.dart';
 import 'package:movie_theater/pages/seat%20select%20page/seat_select_page.dart';
+import 'package:movie_theater/pages/theater%20select/theater_select_ctrl.dart';
 import 'package:movie_theater/utils/asset.dart';
 
 class TheaterSelectPage extends StatefulWidget {
-  TheaterSelectPage({
+  const TheaterSelectPage({
     super.key,
-    required this.movie,
   });
-
-  Movie movie;
 
   @override
   State<TheaterSelectPage> createState() => _TheaterSelectPageState();
@@ -27,37 +25,24 @@ class TheaterSelectPage extends StatefulWidget {
 
 class _TheaterSelectPageState extends State<TheaterSelectPage> {
   List<DateTime> dateList = [];
-
-  DateTime _selectingDate = DateTime.now();
   List<Schedule> currentScheduleList = [];
   List<Theater> currentTheaterList = [];
 
+  DateTime _selectingDate = DateTime.now();
+
   Future<void> setSelectingDate(int index) async {
-    List<Theater> tmpTheaterList = [];
     setState(() {
       _selectingDate = dateList[index];
     });
-    var tmp = (await APIService.getScheduleListByDateAndMovie(
-        MyHelper.getDateTimeFormat(_selectingDate),
-        widget.movie.id.toString()))!;
-    tmp = tmp
-        .where((element) =>
-            MyHelper.dateTimeToMinFromSchedule(element).isAfter(DateTime.now()))
-        .toList();
-    tmp.sort((a, b) => a.time - b.time);
-    //print(MyHelper.getDateTimeFormat(_selectingDate));
+
+    var tmp = await TheaterSelectController.getCurrentSchedule(_selectingDate);
     setState(() {
       currentScheduleList = tmp;
     });
-    //print(currentScheduleList.length);
-    var theaterIdSet = <String>{};
-    for (int i = 0; i < currentScheduleList.length; i++) {
-      theaterIdSet.add(currentScheduleList[i].roomId.split("_")[0]);
-    }
-    for (var id in theaterIdSet) {
-      Theater? newTheater = await APIService.getTheaterById(id);
-      tmpTheaterList.add(newTheater!);
-    }
+
+    List<Theater> tmpTheaterList =
+        await TheaterSelectController.getCurrentTheaterList(
+            currentScheduleList);
     setState(() {
       currentTheaterList = tmpTheaterList;
     });
@@ -90,7 +75,7 @@ class _TheaterSelectPageState extends State<TheaterSelectPage> {
             const AppBarBackButton(),
             Expanded(
               child: Text(
-                widget.movie.title,
+                TheaterSelectController.movie!.title,
                 overflow: TextOverflow.fade,
                 softWrap: false,
                 style: const TextStyle(

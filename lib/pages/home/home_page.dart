@@ -3,7 +3,7 @@ import 'package:movie_theater/data/dataClasses.dart';
 import 'package:movie_theater/pages/home/home_page_body.dart';
 import 'package:movie_theater/pages/home/widgets/side_sheet_active_button.dart';
 import 'package:movie_theater/pages/login/login_page.dart';
-import 'package:movie_theater/pages/sign%20up/signup_page.dart';
+import 'package:movie_theater/pages/sign%20up/register_page.dart';
 import 'package:movie_theater/utils/asset.dart';
 import 'package:provider/provider.dart';
 import 'package:side_sheet/side_sheet.dart';
